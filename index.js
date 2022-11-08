@@ -9,12 +9,12 @@ const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME} = process.env;
 
 const app = express();
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json())
 app.use(router);
-;
+
 app.listen(PORT, () => {
 
     try {

@@ -27,7 +27,7 @@ module.exports = class Database {
 
     static query = async (sql, args, onResult) => {
         if(this.connection != null) {
-            await this.connection.query(sql,[args], function (err, result, fields) {
+            await this.connection.query(sql, args, function (err, result, fields) {
                 if (err) throw err;
                 onResult(result[0])
             });

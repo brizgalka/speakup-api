@@ -1,11 +1,12 @@
 const router = require('express').Router();
+const register = require('./register.js')
 
 router.post('/account/login', (req, res) => {
-    res.send(req.body)
+    register(req, res);
 });
 
 router.post('/account/register', (req, res) => {
-    res.send(req.body);
+    register(req, res);
 })
 
 router.get('/', (req, res) => {

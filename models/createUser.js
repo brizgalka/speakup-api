@@ -1,8 +1,15 @@
-const Database = require('../database/database.js')
-const dbCreateUser = require("../database/dbCreateUser");
+const dbCreateUser = require("../database/dbCreateUser.js");
+const cryptor = require('../utils/cryptor.js')
 
-module.exports = function createUser(username,email,hashPassword,saltPassword,nickname,avatar = "standard.png") {
+module.exports = function createUser(username, email, password, nickname, avatar) {
 
-    dbCreateUser(username,email,hashPassword,saltPassword,nickname,avatar).then()
+    try {
+        const saltPassword = cryptor.genSalt();
+        const hashPassword = cryptor.hashPassword(password, saltPassword).hash;
+        dbCreateUser(username, email, hashPassword, saltPassword, nickname, avatar).then();
+    } catch (e) {
+        console.log(e)
+        return False
+    }
 
 }

@@ -1,11 +1,11 @@
 const Database = require("./database.js")
 
-export default function dbCreateUser(username,email,hashPassword,saltPassword,nickname,avatar = "standard.png") {
+module.exports = function dbCreateUser(username, email, hashPassword, saltPassword, nickname, avatar) {
 
     Database.query(`
-        INSERT INTO USERS (username,email,hashPassword,saltPassword,nickname,avatar) VALUES (?,?,?,?,?,?)`
+        INSERT INTO users (username,email,hashPassword,saltPassword,nickname,avatar) VALUES (?,?,?,?,?,?)`
         ,[username,email,hashPassword,saltPassword,nickname,avatar],(result) => {
             return result
-        }).then(r => console.log(r))
+        }).then()
 
 }
