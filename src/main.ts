@@ -2,35 +2,61 @@ import moduleAlias from "module-alias";
 moduleAlias.addAlias("@",__dirname);
 moduleAlias()
 
-import User from "./App/ControllerModel/User";
 import express from "express"
-import cors from "cors"
-import router from "@/Router/router";
-import bodyParser from "body-parser";
+import { RedisServer } from "@/System/RedisServer"
+import {Server} from "@/System/Server";
 
-import {WebSocketServer,WebSocket} from "ws"
-import { PrismaClient } from '@prisma/client'
 import {WsServer} from "@/System/WsServer";
+import router from "@/Router/router";
+import {ApplicationContext} from "@/System/Context";
+import { PrismaClient } from '@prisma/client'
 
 const SERVER_PORT = Number(process.env.SERVER_PORT);
 const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
+const REDIS_URL = String(process.env.REDIS_URL);
+
+let AppContext: ApplicationContext;
 
 async function startup() {
 
     const app = express()
+
     const wsServer: WsServer = new WsServer({
         WEBSOCKET_PORT
     })
 
-    app.use(bodyParser())
-    app.use(cors())
-
-    app.use(router);
-
-    app.listen(SERVER_PORT,() => {
-        console.log(`server started on port ${SERVER_PORT}`)
+    const server: Server = new Server({
+        port: SERVER_PORT,
+        app,
+        router
     })
 
+    const redisServer: RedisServer = new RedisServer({
+        urlConnection: REDIS_URL
+    })
+
+    const prisma = new PrismaClient()
+
+    AppContext = new ApplicationContext({
+        redis: redisServer || undefined,
+        server: server || undefined,
+        wss: wsServer || undefined,
+        prisma: prisma || undefined,
+        config: {
+            mode: "development",
+            servername: "speak-up"
+        }
+    })
 }
 
-startup()
+startup().then(r => {
+    if(AppContext == undefined) {
+        console.log('AppContext not found')
+    } else {
+        console.log("Application:API has been started")
+    }
+})
+
+export {
+    AppContext
+}

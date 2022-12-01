@@ -7,14 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-    id Int @id @default(autoincrement())
-    name String @db.Text
-    email String @db.Text
+enum Role {
+    USER
+    ADMIN
 }
 
-model messages {
-    id Int @id @default(autoincrement())
-    sender Int @db.Integer
-    reciever Int @db.Integer
+model User {
+    id          Int         @id @default(autoincrement())
+    username    String      @unique
+    nickname    String
+    email       String      @unique
+    created_at  DateTime    @default(now())
+    role        Role        @default(USER)
+
+    @@map("users")
+}
+
+model Message {
+    id          Int @id @default(autoincrement())
+    sender      Int @db.Integer
+    reciever    Int @db.Integer
+    sended_at   DateTime @default(now())
+
+    @@map("messages")
+}
+
+model Chat {
+    user1 User
+    user2 User
+    created_at  DateTime    @default(now())
+
+    @@map("chats")
 }

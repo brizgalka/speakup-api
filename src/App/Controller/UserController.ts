@@ -25,13 +25,16 @@ class UserController {
 
         const candidate = await prisma.users.findUnique({
             where: {
-                id: 0
+                username: username
             }
         })
 
         res.send("ok")
     }
     async sendMessage(req:Request,res:Response,next:NextFunction) {
+
+    }
+    async verifyAccount(req:Request,res:Response,next:NextFunction) {
 
     }
     async deleteMessage(req:Request,res:Response,next:NextFunction) {
@@ -43,7 +46,7 @@ class UserController {
     async login(req:Request,res:Response,next:NextFunction) {
 
     }
-    async check(req:Request,res:Response,next:NextFunction) {
+    async checkToken(req:Request,res:Response,next:NextFunction) {
 
     }
 }

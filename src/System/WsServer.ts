@@ -2,16 +2,22 @@ import {WebSocket, WebSocketServer} from "ws";
 import User from "@/App/ControllerModel/User";
 
 interface WsServerInterface {
+    WEBSOCKET_PORT: number,
+    WEBSOCKET_SERVER: WebSocketServer,
+    connections: Map<User,WebSocket>
+}
+
+interface WsOptionsInterface {
     WEBSOCKET_PORT: number
 }
 
-class WsServer {
+class WsServer implements WsServerInterface {
 
     readonly WEBSOCKET_PORT: number;
     readonly WEBSOCKET_SERVER: WebSocketServer;
     connections = new Map<User,WebSocket>();
 
-    constructor(options: WsServerInterface) {
+    constructor(options: WsOptionsInterface) {
         this.WEBSOCKET_PORT = options.WEBSOCKET_PORT
         this.WEBSOCKET_SERVER = new WebSocketServer({
             port: options.WEBSOCKET_PORT
@@ -39,5 +45,4 @@ class WsServer {
 
 export {
     WsServer,
-    WsServerInterface
 }
