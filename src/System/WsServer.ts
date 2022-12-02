@@ -1,10 +1,15 @@
 import {WebSocket, WebSocketServer} from "ws";
 import User from "@/App/ControllerModel/User";
 
+interface WebSocketUser {
+    status: string,
+    user: User | undefined
+}
+
 interface WsServerInterface {
     WEBSOCKET_PORT: number,
     WEBSOCKET_SERVER: WebSocketServer,
-    connections: Map<User,WebSocket>
+    connections: Map<WebSocket,WebSocketUser>
 }
 
 interface WsOptionsInterface {
@@ -15,7 +20,7 @@ class WsServer implements WsServerInterface {
 
     readonly WEBSOCKET_PORT: number;
     readonly WEBSOCKET_SERVER: WebSocketServer;
-    connections = new Map<User,WebSocket>();
+    connections = new Map<WebSocket,WebSocketUser>();
 
     constructor(options: WsOptionsInterface) {
         this.WEBSOCKET_PORT = options.WEBSOCKET_PORT
@@ -30,7 +35,10 @@ class WsServer implements WsServerInterface {
     onConnection(ws: WebSocket) {
         ws.on("message",(msg: string) => this.onMessage(msg))
         const user: User = {nickname: "text",username: "wwda",password: "AW"};
-        this.connections.set(user,ws)
+        this.connections.set(ws,{
+            status: "wda",
+            user: undefined
+        })
     }
 
     onMessage(msg: string) {
@@ -39,7 +47,7 @@ class WsServer implements WsServerInterface {
 
     onClose(ws: WebSocket) {
         const user: User = {nickname: "text",username: "wwda",password: "AW"};
-        this.connections.delete(user);
+        this.connections.delete(ws);
     }
 }
 

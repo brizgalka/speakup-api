@@ -1,7 +1,7 @@
 import {Request, Response, NextFunction, request} from "express";
 import jwt from "jsonwebtoken";
-import ApiError from "@/App/error/ApiError";
 import {PrismaClient} from "@prisma/client";
+import ApiError from "@/App/error/ApiError";
 
 /*const generateJwt = (id: number, username: string): string => {
     return jwt.sign(
@@ -17,19 +17,48 @@ const prisma = new PrismaClient()
 
 class UserController {
     async registration(req:Request,res:Response,next:NextFunction) {
-        const {username,password,email} = req.body;
+        try {
+            if(req.body == undefined) return next(ApiError.badRequest("Incorrect body").response);
 
-        if(!username) return next(ApiError.badRequest("Uncorrect username"))
-        if(!password) return next(ApiError.badRequest("Uncorrect password"))
-        if(!email) return next(ApiError.badRequest("Uncorrect email"))
+            const username = String(req.body.username);
+            const password = String(req.body.password);
+            const email = String(req.body.email);
 
-        const candidate = await prisma.users.findUnique({
-            where: {
-                username: username
+            if (!username) return next(ApiError.badRequest("Incorrect username").response)
+            if (!password) return next(ApiError.badRequest("Incorrect password").response)
+            if (!email) return next(ApiError.badRequest("Incorrect email").response)
+
+            const candidate = await prisma.user.findFirst({
+                where: {
+                    username
+                },
+            }) || await prisma.user.findFirst({
+                where: {
+                    email
+                },
+            })
+
+            if(candidate != undefined) {
+                return next(ApiError.badRequest("This email or username already taken").response)
             }
-        })
 
-        res.send("ok")
+            const nickname = "nickname";
+
+            const user = await prisma.user.create({
+                data: {
+                    username,
+                    email,
+                    nickname
+                }
+            })
+
+            console.log(user)
+
+            res.send("ok")
+        } catch(e: any) {
+            console.warn(e.toString())
+            res.sendStatus(500)
+        }
     }
     async sendMessage(req:Request,res:Response,next:NextFunction) {
 

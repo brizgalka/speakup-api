@@ -7,35 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-    USER
-    ADMIN
-}
-
 model User {
-    id          Int         @id @default(autoincrement())
-    username    String      @unique
-    nickname    String
-    email       String      @unique
-    created_at  DateTime    @default(now())
-    role        Role        @default(USER)
-
-    @@map("users")
+  id        Int     @id @default(autoincrement())
+  posts     Post[]
+  username  String
+  nickname  String
+  email     String
+  photo     String  @default("user")
 }
 
-model Message {
-    id          Int @id @default(autoincrement())
-    sender      Int @db.Integer
-    reciever    Int @db.Integer
-    sended_at   DateTime @default(now())
-
-    @@map("messages")
+model Post {
+  id        Int     @id @default(autoincrement())
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  Int // relation scalar field  (used in the `@relation` attribute above)
 }
 
-model Chat {
-    user1 User
-    user2 User
-    created_at  DateTime    @default(now())
+model VerifyToken {
+  id        Int     @id @default(autoincrement())
 
-    @@map("chats")
+  value     String  @unique
+  password  String
+  username  String  @unique
+  email     String  @unique
 }

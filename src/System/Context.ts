@@ -2,12 +2,14 @@ import {Server} from "@/System/Server";
 import {WsServer} from "@/System/WsServer";
 import {RedisServer} from "@/System/RedisServer";
 import {PrismaClient} from "@prisma/client";
+import {TgBot} from "@/System/TgBot";
 
 interface ApplicationContextOptionsInterface {
     redis: RedisServer,
     wss: WsServer,
     server: Server,
     prisma: PrismaClient,
+    tgBot: TgBot,
     config: {
         servername: string,
         mode: string
@@ -30,6 +32,7 @@ class ApplicationContext implements ApplicationContextInterface{
     readonly server: Server;
     readonly servername: string;
     readonly mode: string;
+    readonly tgBot: TgBot;
     readonly prisma: PrismaClient;
 
     constructor(options: ApplicationContextOptionsInterface) {
@@ -37,6 +40,8 @@ class ApplicationContext implements ApplicationContextInterface{
         this.wss = options.wss;
         this.server = options.server;
         this.prisma = options.prisma
+        this.tgBot = options.tgBot;
+
         this.servername = options.config.servername;
         this.mode = options.config.mode
 

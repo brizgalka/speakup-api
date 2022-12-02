@@ -1,11 +1,11 @@
 class ApiError  {
 
-    readonly status: number;
-    readonly message: string;
+    status: number;
+    response: string;
 
-    constructor(status: number, message: string) {
+    constructor(status: number, response: string) {
         this.status = status
-        this.message = message
+        this.response = response
     }
 
     static badRequest(message: string) {
