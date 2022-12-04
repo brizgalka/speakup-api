@@ -1,5 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api'
-import UserController from "@/App/Controller/UserController";
+import AuthController from "@/App/Controller/AuthController"
 
 interface TgBotInterface {
     token: string,
@@ -10,7 +10,7 @@ interface TgBotOptions {
     token: string
 }
 
-const userController = new UserController();
+const authController = new AuthController();
 
 class TgBot implements TgBotInterface {
 
@@ -41,13 +41,13 @@ class TgBot implements TgBotInterface {
 
             const token: string | undefined = args[1];
 
+            console.log(token)
+
             if(token == undefined) {
                 this.bot.sendMessage(chatId, `/verify <token>`);
             } else {
-                this.bot.sendMessage(chatId, `in process..`);
-
-                const result = await userController.verifyAccount(token,String(msg.chat.id))
-                console.log(result)
+                const result = await authController.verifyAccount(token,String(msg.chat.id))
+                this.bot.sendMessage(chatId, result);
             }
         });
     }

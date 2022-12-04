@@ -23,7 +23,8 @@
     "build:clean": "rimraf ./dist",
     "dev": "ts-node-dev --respawn ./src/main.ts",
     "git-push": "git-push.bat",
-    "git-clone": "git clone https://github.com/brizgalka/speakup-api.git"
+    "git-clone": "git clone https://github.com/brizgalka/speakup-api.git",
+    "prisma-migrate": "npx prisma migrate dev --name init && npx prisma generate"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.2",
