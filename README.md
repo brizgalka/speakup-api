@@ -7,4 +7,13 @@
 ### Storage/static - серверные статичные файлы
 ### Storage/users - пользовательские статичные файлы
 ---
+# HTTP API Routes:
+## auth:
+## auth/registration
+## auth/login
+## auth/checkToken
+## users:
+## user/sendMessage
+## user/deleteMessage
+# WS API
 ---
