@@ -18,7 +18,6 @@ interface ServerOptionsInterface {
     prisma: PrismaClient,
 }
 
-
 class Server implements ServerInterface {
 
     readonly port: number;

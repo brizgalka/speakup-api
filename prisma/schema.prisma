@@ -8,25 +8,20 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  posts     Post[]
-  username  String
-  nickname  String
-  email     String
-  photo     String  @default("user")
-}
-
-model Post {
-  id        Int     @id @default(autoincrement())
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int // relation scalar field  (used in the `@relation` attribute above)
+    id        Int         @id @default(autoincrement())
+    username  String
+    nickname  String?
+    password  String
+    email     String
+    photo     String      @default("user")
+    telegram  String      @unique
 }
 
 model VerifyToken {
-  id        Int     @id @default(autoincrement())
+    id        Int         @id @default(autoincrement())
 
-  value     String  @unique
-  password  String
-  username  String  @unique
-  email     String  @unique
+    value     String      @unique
+    password  String
+    username  String      @unique
+    email     String      @unique
 }

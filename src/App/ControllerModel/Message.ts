@@ -4,6 +4,6 @@ import User from "./User";
 export default interface Message {
     sender: User,
     getter: User,
-    text: String | null,
+    text: string | null,
     attachment: Attachment[] | null,
 }

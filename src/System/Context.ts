@@ -51,6 +51,7 @@ class ApplicationContext implements ApplicationContextInterface{
             EXPRESS: ${this.server != undefined} 
             WSS: ${this.wss != undefined}
             PRISMA ${this.prisma != undefined}
+            TGBOT ${this.tgBot != undefined}
         `)
     }
 }

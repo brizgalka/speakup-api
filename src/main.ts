@@ -22,19 +22,10 @@ let AppContext: ApplicationContext;
 async function startup() {
 
     const app = express()
+    const prisma = new PrismaClient()
 
     const wsServer: WsServer = new WsServer({
         WEBSOCKET_PORT
-    })
-
-    const prisma = new PrismaClient()
-
-    prisma.user.create({
-        data: {
-            username: "DWaawd",
-            nickname: "awdawd",
-            email: "ADWwda"
-        }
     })
 
     const server: Server = new Server({

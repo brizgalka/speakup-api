@@ -1,19 +1,12 @@
-import {Request, Response, NextFunction, request} from "express";
-import jwt from "jsonwebtoken";
-import {PrismaClient} from "@prisma/client";
+import {Request, Response, NextFunction} from "express";
 import ApiError from "@/App/error/ApiError";
-
-/*const generateJwt = (id: number, username: string): string => {
-    return jwt.sign(
-        {id, username},
-        jwt.sign(),
-        {
-            expiresIn: '24h'
-        }
-    )
-}*/
+import VerifyToken from "@/App/ControllerModel/Token";
+import bcrypt from 'bcrypt';
+import {PrismaClient} from "@prisma/client";
 
 const prisma = new PrismaClient()
+
+const saltRounds = Number(process.env.saltRounds);
 
 class UserController {
     async registration(req:Request,res:Response,next:NextFunction) {
@@ -42,19 +35,35 @@ class UserController {
                 return next(ApiError.badRequest("This email or username already taken").response)
             }
 
-            const nickname = "nickname";
+            const token_candidate = await prisma.verifyToken.findFirst({
+                where: {
+                    username
+                },
+            }) || await prisma.user.findFirst({
+                where: {
+                    email
+                },
+            })
 
-            const user = await prisma.user.create({
+            if(token_candidate != undefined) {
+                return next(ApiError.badRequest("Token already exist").response)
+            }
+
+            const salt = bcrypt.genSaltSync(saltRounds);
+            const tokenValue = bcrypt.hashSync(username + password + email + String(Date.now()) + String(Math.random()), salt);
+
+            const token = await prisma.verifyToken.create({
                 data: {
                     username,
                     email,
-                    nickname
+                    password,
+                    value: tokenValue
                 }
             })
 
-            console.log(user)
-
-            res.send("ok")
+            res.json({
+                "verifyToken": token.value
+            })
         } catch(e: any) {
             console.warn(e.toString())
             res.sendStatus(500)
@@ -63,8 +72,32 @@ class UserController {
     async sendMessage(req:Request,res:Response,next:NextFunction) {
 
     }
-    async verifyAccount(req:Request,res:Response,next:NextFunction) {
+    async verifyAccount(token: string,telegram: string) {
 
+        const user_token = await prisma.verifyToken.findFirst({
+            where: {
+                value: token
+            }
+        })
+
+        if(user_token == undefined) {
+            return "Unknown user"
+        } else {
+            await prisma.user.create({
+                data: {
+                    username: user_token?.username || "",
+                    email: user_token?.email || "",
+                    password: user_token?.password || "",
+                    telegram: telegram
+                }
+            })
+            await prisma.verifyToken.delete({
+                where: {
+                    value: token
+                }
+            })
+            return "Successful"
+        }
     }
     async deleteMessage(req:Request,res:Response,next:NextFunction) {
 

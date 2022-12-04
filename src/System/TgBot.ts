@@ -1,4 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api'
+import UserController from "@/App/Controller/UserController";
 
 interface TgBotInterface {
     token: string,
@@ -8,6 +9,8 @@ interface TgBotInterface {
 interface TgBotOptions {
     token: string
 }
+
+const userController = new UserController();
 
 class TgBot implements TgBotInterface {
 
@@ -21,11 +24,31 @@ class TgBot implements TgBotInterface {
 
         console.log("tg bot has been started");
 
-        this.bot.onText(/\/start/, (msg, match) => {
+        this.bot.onText(/\/start/, async (msg, match) => {
 
             const chatId = msg.chat.id;
 
-            this.bot.sendMessage(chatId, `Uncaught ReferenceError: userId is not defined`);
+            this.bot.sendMessage(chatId, `Send verify token`);
+        });
+
+        this.bot.onText(/\/verify/, async (msg, match) => {
+
+            const chatId = msg.chat.id;
+
+            const text = String(msg.text);
+
+            const args: string[] = text?.split(" ");
+
+            const token: string | undefined = args[1];
+
+            if(token == undefined) {
+                this.bot.sendMessage(chatId, `/verify <token>`);
+            } else {
+                this.bot.sendMessage(chatId, `in process..`);
+
+                const result = await userController.verifyAccount(token,String(msg.chat.id))
+                console.log(result)
+            }
         });
     }
 
