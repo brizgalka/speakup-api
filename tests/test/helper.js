@@ -26,7 +26,7 @@ function sum(a,b) {
     const sum = a1 + b1
     return sum / (10 ** scope)
 }
-function min(a,b) {
+function sup(a,b) {
     function dot_number(num) {
         const num1 = String(num)
         const split = num1.split("")
