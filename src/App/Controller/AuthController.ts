@@ -11,13 +11,11 @@ class AuthController {
         try {
             if(req.body == undefined) return next(ApiError.badRequest("Incorrect body").response);
 
-            const username = String(req.body.username);
-            const password = String(req.body.password);
-            const email = String(req.body.email);
+            const {username,password,email} = req.body;
 
-            if (!username) return next(ApiError.badRequest("Incorrect username").response)
-            if (!password) return next(ApiError.badRequest("Incorrect password").response)
-            if (!email) return next(ApiError.badRequest("Incorrect email").response)
+            if (!username) return next(ApiError.badRequest("Incorrect username").response);
+            if (!password) return next(ApiError.badRequest("Incorrect password").response);
+            if (!email) return next(ApiError.badRequest("Incorrect email").response);
 
             const candidate = await prisma.user.findFirst({
                 where: {
@@ -73,11 +71,6 @@ class AuthController {
                     createdAt: String(Date.now())
                 }
             })
-
-            console.log(token)
-            console.log(token.createdAt)
-            console.log(Number(token.createdAt))
-            console.log(Date.now() - Number(token.createdAt))
 
             res.json({
                 "verifyToken": token.value

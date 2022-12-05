@@ -1,15 +1,11 @@
 import {WebSocket, WebSocketServer} from "ws";
 import User from "@/App/ControllerModel/User";
-
-interface WebSocketUser {
-    status: string,
-    user: User | undefined
-}
+import {WsUser,UserStatus} from "@/App/ControllerModel/WsUser";
 
 interface WsServerInterface {
     WEBSOCKET_PORT: number,
     WEBSOCKET_SERVER: WebSocketServer,
-    connections: Map<WebSocket,WebSocketUser>
+    connections: Map<WebSocket,WsUser>
 }
 
 interface WsOptionsInterface {
@@ -20,7 +16,7 @@ class WsServer implements WsServerInterface {
 
     readonly WEBSOCKET_PORT: number;
     readonly WEBSOCKET_SERVER: WebSocketServer;
-    connections = new Map<WebSocket,WebSocketUser>();
+    connections = new Map<WebSocket,WsUser>();
 
     constructor(options: WsOptionsInterface) {
         this.WEBSOCKET_PORT = options.WEBSOCKET_PORT
@@ -34,15 +30,18 @@ class WsServer implements WsServerInterface {
 
     onConnection(ws: WebSocket) {
         ws.on("message",(msg: string) => this.onMessage(msg))
-        const user: User = {nickname: "text",username: "wwda",password: "AW"};
-        this.connections.set(ws,{
-            status: "wda",
-            user: undefined
-        })
+        const wsUser: WsUser = {
+            status: UserStatus.VERIFICATION,
+            user: {
+                username: "AWD"
+            }
+        }
+        this.connections.set(ws,wsUser)
     }
 
     onMessage(msg: string) {
-        console.log(msg)
+        const message = JSON.parse(msg.toString())
+        console.log(message);
     }
 
     onClose(ws: WebSocket) {

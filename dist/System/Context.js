@@ -7,12 +7,14 @@ class ApplicationContext {
     server;
     servername;
     mode;
+    tgBot;
     prisma;
     constructor(options) {
         this.redis = options.redis;
         this.wss = options.wss;
         this.server = options.server;
         this.prisma = options.prisma;
+        this.tgBot = options.tgBot;
         this.servername = options.config.servername;
         this.mode = options.config.mode;
         console.log(`
@@ -21,6 +23,7 @@ class ApplicationContext {
             EXPRESS: ${this.server != undefined} 
             WSS: ${this.wss != undefined}
             PRISMA ${this.prisma != undefined}
+            TGBOT ${this.tgBot != undefined}
         `);
     }
 }

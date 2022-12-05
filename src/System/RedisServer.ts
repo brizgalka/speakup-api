@@ -19,7 +19,7 @@ class RedisServer implements RedisServerInterface{
         this.connection = createClient({
             url: options.urlConnection
         });
-        if(this.connection) {
+        if(this.connection != undefined) {
             console.log("REDIS CONNECTED")
         }
         this.connection.on('error', (err: string) => console.log('Redis Client Error', err));

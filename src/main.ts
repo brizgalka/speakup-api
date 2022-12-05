@@ -1,4 +1,7 @@
 import moduleAlias from "module-alias";
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 moduleAlias.addAlias("@",__dirname);
 moduleAlias()
 
@@ -17,12 +20,14 @@ const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
 const REDIS_URL = String(process.env.REDIS_URL);
 const TG_TOKEN = String(process.env.TG_TOKEN);
 
+const mode = String(process.env.MODE);
+
 let AppContext: ApplicationContext;
 
 async function startup() {
 
-    const app = express()
-    const prisma = new PrismaClient()
+    const app = express();
+    const prisma = new PrismaClient() || undefined;
 
     const wsServer: WsServer = new WsServer({
         WEBSOCKET_PORT
@@ -41,16 +46,16 @@ async function startup() {
 
     const redisServer: RedisServer = new RedisServer({
         urlConnection: REDIS_URL
-    });
+    })
 
     AppContext = new ApplicationContext({
-        redis: redisServer || undefined,
-        server: server || undefined,
-        wss: wsServer || undefined,
-        prisma: prisma || undefined,
-        tgBot: tgBot || undefined,
+        redis: redisServer,
+        server,
+        wss: wsServer,
+        prisma,
+        tgBot,
         config: {
-            mode: "development",
+            mode,
             servername: "speak-up"
         }
     })

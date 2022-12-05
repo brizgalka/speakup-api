@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class ApiError {
     status;
-    message;
-    constructor(status, message) {
+    response;
+    constructor(status, response) {
         this.status = status;
-        this.message = message;
+        this.response = response;
     }
     static badRequest(message) {
         return new ApiError(404, message);

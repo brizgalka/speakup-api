@@ -17,11 +17,11 @@ class Server {
         this.app = options.app;
         this.router = options.router;
         this.prisma = options.prisma;
-        this.app.use(this.router);
+        this.app.use((0, cors_1.default)());
         this.app.use(body_parser_1.default.urlencoded());
         this.app.use(body_parser_1.default.json());
-        this.app.use((0, cors_1.default)());
         this.app.use((0, cookie_parser_1.default)());
+        this.app.use(this.router);
         this.app.listen(this.port, () => {
             console.log(`server started on port ${this.port}`);
         });

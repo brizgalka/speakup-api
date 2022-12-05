@@ -45,6 +45,8 @@ class ApplicationContext implements ApplicationContextInterface{
         this.servername = options.config.servername;
         this.mode = options.config.mode
 
+        console.log(this.redis)
+
         console.log(`
             Server context: 
             REDIS: ${this.redis != undefined} 

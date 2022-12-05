@@ -18,14 +18,17 @@ class WsServer {
     onConnection(ws) {
         ws.on("message", (msg) => this.onMessage(msg));
         const user = { nickname: "text", username: "wwda", password: "AW" };
-        this.connections.set(user, ws);
+        this.connections.set(ws, {
+            status: "wda",
+            user: undefined
+        });
     }
     onMessage(msg) {
         console.log(msg);
     }
     onClose(ws) {
         const user = { nickname: "text", username: "wwda", password: "AW" };
-        this.connections.delete(user);
+        this.connections.delete(ws);
     }
 }
 exports.WsServer = WsServer;

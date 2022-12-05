@@ -32,16 +32,11 @@ class TgBot implements TgBotInterface {
         });
 
         this.bot.onText(/\/verify/, async (msg, match) => {
-
             const chatId = msg.chat.id;
-
             const text = String(msg.text);
 
             const args: string[] = text?.split(" ");
-
             const token: string | undefined = args[1];
-
-            console.log(token)
 
             if(token == undefined) {
                 this.bot.sendMessage(chatId, `/verify <token>`);
