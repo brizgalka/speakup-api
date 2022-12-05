@@ -1,0 +1,29 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+}
+
+h1,h2,h3,h4,h5,h6,p,a {
+    font-family: 'Montserrat-Medium';
+    font-style: normal;
+    font-weight: 400;
+}
+
+button {
+    cursor: pointer;
+}
+
+:root {
+    --gray_850: #292929;
+    --gray_900: #222222;
+    --gray_400: #939393;
+    --gray_500: #828282;
+    --gray_600: #656565;
+    --gray_700: #555555;
+    --gray_900_alpha72: rgba(34, 34, 34, 0.72);
+    --gray_900_alpha88: rgba(34, 34, 34, 0.88);
+    --gray_940: #141414;
+    --gray_960: #0a0a0a;
+}
