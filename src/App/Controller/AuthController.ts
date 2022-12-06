@@ -2,6 +2,7 @@ import {PrismaClient} from "@prisma/client";
 import {NextFunction, Request, Response} from "express";
 import ApiError from "@/App/error/ApiError";
 import bcrypt from "bcrypt";
+import {ApplicationContext} from "@/System/Context";
 const prisma = new PrismaClient()
 
 const saltRounds = Number(process.env.saltRounds);
@@ -9,13 +10,15 @@ const saltRounds = Number(process.env.saltRounds);
 class AuthController {
     async registration(req:Request,res:Response,next:NextFunction) {
         try {
-            if(req.body == undefined) return next(ApiError.badRequest("Incorrect body").response);
+            if(req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
 
             const {username,password,email} = req.body;
+            const user_uuid = req.body.uuid;
 
-            if (!username) return next(ApiError.badRequest("Incorrect username").response);
-            if (!password) return next(ApiError.badRequest("Incorrect password").response);
-            if (!email) return next(ApiError.badRequest("Incorrect email").response);
+            if(!user_uuid) return next(ApiError.badRequest("Invalid UUID").response);
+            if (!username) return next(ApiError.badRequest("Invalid username").response);
+            if (!password) return next(ApiError.badRequest("Invalid password").response);
+            if (!email) return next(ApiError.badRequest("Invalid email").response);
 
             const candidate = await prisma.user.findFirst({
                 where: {
@@ -71,6 +74,8 @@ class AuthController {
                     createdAt: String(Date.now())
                 }
             })
+
+            await ApplicationContext.redis.set(token.value,user_uuid)
 
             res.json({
                 "verifyToken": token.value

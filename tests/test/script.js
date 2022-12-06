@@ -11,6 +11,7 @@ window.addEventListener("load", () => {
         const password = document.querySelector("#password").value
 
         let json = JSON.stringify({
+            "uuid": String(localStorage["WsUUID"]),
             "password": password,
             "email": email,
             "username": username

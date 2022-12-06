@@ -50,6 +50,9 @@ async function startup() {
         urlConnection: REDIS_URL
     })
 
+    console.log(REDIS_URL)
+    await redisServer.set("dwaadw","DWADAW")
+
     AppContext = new ApplicationContext({
         redis: redisServer,
         server,

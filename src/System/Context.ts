@@ -25,35 +25,33 @@ interface ApplicationContextInterface {
     prisma: PrismaClient
 }
 
-class ApplicationContext implements ApplicationContextInterface{
+class ApplicationContext {
 
-    readonly redis: RedisServer;
-    readonly wss: WsServer;
-    readonly server: Server;
-    readonly servername: string;
-    readonly mode: string;
-    readonly tgBot: TgBot;
-    readonly prisma: PrismaClient;
+    static redis: RedisServer;
+    static wss: WsServer;
+    static server: Server;
+    static servername: string;
+    static mode: string;
+    static tgBot: TgBot;
+    static prisma: PrismaClient;
 
     constructor(options: ApplicationContextOptionsInterface) {
-        this.redis = options.redis;
-        this.wss = options.wss;
-        this.server = options.server;
-        this.prisma = options.prisma
-        this.tgBot = options.tgBot;
+        ApplicationContext.redis = options.redis;
+        ApplicationContext.wss = options.wss;
+        ApplicationContext.server = options.server;
+        ApplicationContext.prisma = options.prisma
+        ApplicationContext.tgBot = options.tgBot;
 
-        this.servername = options.config.servername;
-        this.mode = options.config.mode
-
-        console.log(this.redis)
+        ApplicationContext.servername = options.config.servername;
+        ApplicationContext.mode = options.config.mode
 
         console.log(`
             Server context: 
-            REDIS: ${this.redis != undefined} 
-            EXPRESS: ${this.server != undefined} 
-            WSS: ${this.wss != undefined}
-            PRISMA ${this.prisma != undefined}
-            TGBOT ${this.tgBot != undefined}
+            REDIS: ${ApplicationContext.redis != undefined} 
+            EXPRESS: ${ApplicationContext.server != undefined} 
+            WSS: ${ApplicationContext.wss != undefined}
+            PRISMA ${ApplicationContext.prisma != undefined}
+            TGBOT ${ApplicationContext.tgBot != undefined}
         `)
     }
 }

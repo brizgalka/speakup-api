@@ -36,7 +36,7 @@ class WsServer implements WsServerInterface {
         this.WEBSOCKET_SERVER.on("connection",(ws: WebSocket) => this.onConnection(ws))
         this.WEBSOCKET_SERVER.on('open', (ws: WebSocket) => this.onOpen(ws))
 
-        this.id_connection = 0;
+        this.id_connection = 0
 
         const interval = setInterval(() => {
             for (const connection of this.connections.entries()) {
@@ -45,16 +45,12 @@ class WsServer implements WsServerInterface {
                 if(Date.now() - ws_user.lastPing > this.MAX_WSCONNECTION_PINGING) {
                     this.connections.delete((ws_connection))
                 }
-                console.log(ws_user);
-                console.log(Date.now() - ws_user.lastPing)
             }
-            console.log(this.connections.size)
         },1500)
     }
 
     onOpen(ws: WebSocket) {
         ws.send("hello")
-        console.log("on open")
     }
     sendMessage(uuid: string) {
         if(this.verifyUUID(uuid)) {
@@ -71,7 +67,6 @@ class WsServer implements WsServerInterface {
     }
 
     onConnection(ws: WebSocket) {
-        console.log("new Connection")
         let found = this.verifyUUID(ws.protocol);
         console.log(found)
         if(found) {
@@ -117,18 +112,14 @@ class WsServer implements WsServerInterface {
         const msg = data.toString()
         const message = JSON.parse(data.toString())
 
-        console.log(message)
-
         switch(message["message"]) {
             case "heartbeat": {
-                console.log('heartbeat')
                 const ws_user = this.connections.get(ws);
                 if (ws_user != undefined) {
                     ws_user.lastPing = Date.now();
                     this.connections.set(ws, ws_user)
                 }
                 const uuid_token = message["uuid"];
-                console.log(this.verifyUUID(uuid_token))
                 if(!this.verifyUUID(uuid_token)) {
                     ws.close()
                 }
