@@ -1,11 +1,12 @@
 let socket = undefined;
 let connected = false;
+let HTML_unconnected;
+let REG_FORM;
 
 if(localStorage["WsUUID"] == undefined) localStorage["WsUUID"] = ""
-const HTML_unconnected = document.querySelector("#app");
 
 function connect_socket() {
-    socket = new WebSocket("ws://localhost:6061",localStorage["WsUUID"]);
+    socket = new WebSocket("ws://localhost:6061",String(localStorage["WsUUID"]));
     socket.onopen = function(e) {
         changeConnectedStatus(true)
     };
@@ -31,9 +32,11 @@ function connect_socket() {
 function changeConnectedStatus(to) {
     connected = to
     if(connected) {
-        console.log(connected)
+        HTML_unconnected.style.display = "none"
+        REG_FORM.style.display = "block"
     } else {
-        console.log(connected)
+        HTML_unconnected.style.display = "block"
+        REG_FORM.style.display = "none"
     }
 }
 
@@ -43,7 +46,7 @@ function heartbeat() {
     connected = true
     socket.send(JSON.stringify({
             "message": "heartbeat",
-            "uuid": localStorage["WsUUID"]
+            "uuid": String(localStorage["WsUUID"])
         }
     ));
 }
@@ -51,5 +54,7 @@ function heartbeat() {
 setInterval(heartbeat, 750);
 
 window.addEventListener("load", (event) => {
+    HTML_unconnected = document.querySelector(".unconnected");
+    REG_FORM = document.querySelector(".reg");
     connect_socket()
 })

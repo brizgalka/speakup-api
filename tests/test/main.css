@@ -44,6 +44,19 @@ body {
     text-align: center;
 }
 
+.app .unconnected {
+    display: none;
+    position: relative;
+    width: 450px;
+    top: 100px;
+    height: 250px;
+    margin: 0 auto;
+    color: white;
+    text-align: center;
+    background-color: var(--gray_850);
+    padding: 50px;
+}
+
 .waiting h3,p {
     color: white;
 }
