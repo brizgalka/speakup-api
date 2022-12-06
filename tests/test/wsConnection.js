@@ -1,5 +1,6 @@
+let socket = undefined;
 window.addEventListener("load", (event) => {
-    let socket = new WebSocket("ws://localhost:6061");
+    socket = new WebSocket("ws://localhost:6061");
     socket.onopen = function(e) {
         const message = {
             "message": "hello",
@@ -23,3 +24,6 @@ window.addEventListener("load", (event) => {
         console.log(`[error]`);
     };
 })
+window.addEventListener("beforeunload", function (e) {
+    socket.close();
+});
