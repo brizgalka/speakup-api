@@ -19,6 +19,7 @@ const SERVER_PORT = Number(process.env.SERVER_PORT);
 const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
 const REDIS_URL = String(process.env.REDIS_URL);
 const TG_TOKEN = String(process.env.TG_TOKEN);
+const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
 
 const mode = String(process.env.MODE);
 
@@ -30,7 +31,8 @@ async function startup() {
     const prisma = new PrismaClient() || undefined;
 
     const wsServer: WsServer = new WsServer({
-        WEBSOCKET_PORT
+        WEBSOCKET_PORT,
+        MAX_WSCONNECTION_PINGING
     })
 
     const server: Server = new Server({
