@@ -44,34 +44,37 @@ const SERVER_PORT = Number(process.env.SERVER_PORT);
 const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
 const REDIS_URL = String(process.env.REDIS_URL);
 const TG_TOKEN = String(process.env.TG_TOKEN);
+const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
+const mode = String(process.env.MODE);
 let AppContext;
 exports.AppContext = AppContext;
 async function startup() {
     const app = (0, express_1.default)();
-    const prisma = new client_1.PrismaClient();
-    const wsServer = new WsServer_1.WsServer({
-        WEBSOCKET_PORT
+    const prisma = new client_1.PrismaClient() || undefined;
+    const wsServer = await new WsServer_1.WsServer({
+        WEBSOCKET_PORT,
+        MAX_WSCONNECTION_PINGING
     });
-    const server = new Server_1.Server({
+    const server = await new Server_1.Server({
         port: SERVER_PORT,
         app,
         router: router_1.default,
         prisma
     });
-    const tgBot = new TgBot_1.TgBot({
+    const tgBot = await new TgBot_1.TgBot({
         token: TG_TOKEN
     });
-    const redisServer = new RedisServer_1.RedisServer({
+    const redisServer = await new RedisServer_1.RedisServer({
         urlConnection: REDIS_URL
     });
     exports.AppContext = AppContext = new Context_1.ApplicationContext({
-        redis: redisServer || undefined,
-        server: server || undefined,
-        wss: wsServer || undefined,
-        prisma: prisma || undefined,
-        tgBot: tgBot || undefined,
+        redis: redisServer,
+        server,
+        wss: wsServer,
+        prisma,
+        tgBot,
         config: {
-            mode: "development",
+            mode,
             servername: "speak-up"
         }
     });

@@ -30,28 +30,25 @@ async function startup() {
     const app = express();
     const prisma = new PrismaClient() || undefined;
 
-    const wsServer: WsServer = new WsServer({
+    const wsServer: WsServer = await new WsServer({
         WEBSOCKET_PORT,
         MAX_WSCONNECTION_PINGING
     })
 
-    const server: Server = new Server({
+    const server: Server = await new Server({
         port: SERVER_PORT,
         app,
         router,
         prisma
     })
 
-    const tgBot: TgBot = new TgBot({
+    const tgBot: TgBot = await new TgBot({
         token: TG_TOKEN
     })
 
-    const redisServer: RedisServer = new RedisServer({
+    const redisServer: RedisServer = await new RedisServer({
         urlConnection: REDIS_URL
     })
-
-    console.log(REDIS_URL)
-    await redisServer.set("dwaadw","DWADAW")
 
     AppContext = new ApplicationContext({
         redis: redisServer,

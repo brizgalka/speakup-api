@@ -23,7 +23,6 @@ class TgBot {
             const text = String(msg.text);
             const args = text?.split(" ");
             const token = args[1];
-            console.log(token);
             if (token == undefined) {
                 this.bot.sendMessage(chatId, `/verify <token>`);
             }

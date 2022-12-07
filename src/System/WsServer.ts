@@ -45,6 +45,8 @@ class WsServer implements WsServerInterface {
                 if(Date.now() - ws_user.lastPing > this.MAX_WSCONNECTION_PINGING) {
                     this.connections.delete((ws_connection))
                 }
+                console.log(ws_user)
+                console.log(Date.now() - ws_user.lastPing)
             }
         },1500)
     }
@@ -52,15 +54,14 @@ class WsServer implements WsServerInterface {
     onOpen(ws: WebSocket) {
         ws.send("hello")
     }
-    sendMessage(uuid: string) {
+
+    sendMessage(uuid: string,message: object) {
         if(this.verifyUUID(uuid)) {
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0]
                 const ws_user = connection[1]
                 if (ws_user.uuid == uuid) {
-                    ws_connection.send(JSON.stringify({
-                        "message": "hello"
-                    }))
+                    ws_connection.send(JSON.stringify(message))
                 }
             }
         }
@@ -68,7 +69,6 @@ class WsServer implements WsServerInterface {
 
     onConnection(ws: WebSocket) {
         let found = this.verifyUUID(ws.protocol);
-        console.log(found)
         if(found) {
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0]
@@ -95,6 +95,7 @@ class WsServer implements WsServerInterface {
             this.id_connection += 1
             this.connections.set(ws, wsUser)
         }
+        console.log(`connections: ${this.connections.size}`)
         ws.on("message",(data: Buffer) => this.onMessage(data,ws))
     }
     verifyUUID(uuid: string) {
@@ -110,7 +111,7 @@ class WsServer implements WsServerInterface {
 
     onMessage(data: Buffer,ws: WebSocket) {
         const msg = data.toString()
-        const message = JSON.parse(data.toString())
+        const message = JSON.parse(msg)
 
         switch(message["message"]) {
             case "heartbeat": {
@@ -126,7 +127,7 @@ class WsServer implements WsServerInterface {
                 break;
             }
             case "sendMessage": {
-                this.sendMessage(message["uuid"])
+                this.sendMessage(message["uuid"],{"message":"hello"})
                 break;
             }
             default: {

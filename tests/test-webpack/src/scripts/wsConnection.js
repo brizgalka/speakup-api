@@ -13,8 +13,14 @@ function connect_socket() {
     socket.onmessage = function(event) {
         changeConnectedStatus(true)
         const message = JSON.parse(event.data)
+        console.log(message)
         if(message["setWsUUID"] != undefined) {
             localStorage["WsUUID"] = message["setWsUUID"]
+        }
+        if(message["verify"] != undefined) {
+            if(message["verify"] == "ok") {
+                console.log("Successful")
+            }
         }
     };
     socket.onclose = function(event) {
@@ -51,7 +57,7 @@ function heartbeat() {
     ));
 }
 
-setInterval(heartbeat, 750);
+setInterval(heartbeat, 500);
 
 window.addEventListener("load", (event) => {
     HTML_unconnected = document.querySelector(".unconnected");

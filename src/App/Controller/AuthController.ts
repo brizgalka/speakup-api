@@ -1,11 +1,9 @@
 import {PrismaClient} from "@prisma/client";
 import {NextFunction, Request, Response} from "express";
 import ApiError from "@/App/error/ApiError";
-import bcrypt from "bcrypt";
 import {ApplicationContext} from "@/System/Context";
 const prisma = new PrismaClient()
-
-const saltRounds = Number(process.env.saltRounds);
+import { v4 as uuidv4 } from 'uuid';
 
 class AuthController {
     async registration(req:Request,res:Response,next:NextFunction) {
@@ -60,10 +58,7 @@ class AuthController {
                 }
             }
 
-            const salt = bcrypt.genSaltSync(saltRounds);
-            console.log(username + password + email + String(Date.now()) + String(Math.random()))
-            const tokenValue = bcrypt.hashSync(username + password + email + String(Date.now()) + String(Math.random()), salt);
-
+            const tokenValue = uuidv4()
 
             const token = await prisma.verifyToken.create({
                 data: {
@@ -75,7 +70,7 @@ class AuthController {
                 }
             })
 
-            await ApplicationContext.redis.set(token.value,user_uuid)
+            await ApplicationContext.redis.set(tokenValue,user_uuid)
 
             res.json({
                 "verifyToken": token.value
@@ -120,6 +115,15 @@ class AuthController {
                     value: token
                 }
             })
+            const user_uuid_connection = await ApplicationContext.redis.get(token)
+            console.log("successful")
+            if(user_uuid_connection != null) {
+                if (ApplicationContext.wss.verifyUUID(user_uuid_connection)) {
+                    ApplicationContext.wss.sendMessage(user_uuid_connection,{
+                        "verify": "ok"
+                    })
+                }
+            }
             return "Аккаунт успешно создан и привязан к вашему телеграмм!"
         }
     }

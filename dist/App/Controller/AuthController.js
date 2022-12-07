@@ -5,23 +5,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const ApiError_1 = __importDefault(require("@/App/error/ApiError"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const Context_1 = require("@/System/Context");
 const prisma = new client_1.PrismaClient();
-const saltRounds = Number(process.env.saltRounds);
+const uuid_1 = require("uuid");
 class AuthController {
     async registration(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Incorrect body").response);
-            const username = String(req.body.username);
-            const password = String(req.body.password);
-            const email = String(req.body.email);
+                return next(ApiError_1.default.badRequest("Invalid body").response);
+            const { username, password, email } = req.body;
+            const user_uuid = req.body.uuid;
+            if (!user_uuid)
+                return next(ApiError_1.default.badRequest("Invalid UUID").response);
             if (!username)
-                return next(ApiError_1.default.badRequest("Incorrect username").response);
+                return next(ApiError_1.default.badRequest("Invalid username").response);
             if (!password)
-                return next(ApiError_1.default.badRequest("Incorrect password").response);
+                return next(ApiError_1.default.badRequest("Invalid password").response);
             if (!email)
-                return next(ApiError_1.default.badRequest("Incorrect email").response);
+                return next(ApiError_1.default.badRequest("Invalid email").response);
             const candidate = await prisma.user.findFirst({
                 where: {
                     username
@@ -59,9 +60,7 @@ class AuthController {
                     return next(ApiError_1.default.badRequest("Token already exist").response);
                 }
             }
-            const salt = bcrypt_1.default.genSaltSync(saltRounds);
-            console.log(username + password + email + String(Date.now()) + String(Math.random()));
-            const tokenValue = bcrypt_1.default.hashSync(username + password + email + String(Date.now()) + String(Math.random()), salt);
+            const tokenValue = (0, uuid_1.v4)();
             const token = await prisma.verifyToken.create({
                 data: {
                     username,
@@ -71,10 +70,7 @@ class AuthController {
                     createdAt: String(Date.now())
                 }
             });
-            console.log(token);
-            console.log(token.createdAt);
-            console.log(Number(token.createdAt));
-            console.log(Date.now() - Number(token.createdAt));
+            await Context_1.ApplicationContext.redis.set(tokenValue, user_uuid);
             res.json({
                 "verifyToken": token.value
             });
@@ -116,6 +112,15 @@ class AuthController {
                     value: token
                 }
             });
+            const user_uuid_connection = await Context_1.ApplicationContext.redis.get(token);
+            console.log("successful");
+            if (user_uuid_connection != null) {
+                if (Context_1.ApplicationContext.wss.verifyUUID(user_uuid_connection)) {
+                    Context_1.ApplicationContext.wss.sendMessage(user_uuid_connection, {
+                        "verify": "ok"
+                    });
+                }
+            }
             return "Аккаунт успешно создан и привязан к вашему телеграмм!";
         }
     }

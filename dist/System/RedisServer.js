@@ -10,9 +10,10 @@ class RedisServer {
         this.connection = (0, redis_1.createClient)({
             url: options.urlConnection
         });
-        if (this.connection) {
+        if (this.connection != undefined) {
             console.log("REDIS CONNECTED");
         }
+        this.connection.connect();
         this.connection.on('error', (err) => console.log('Redis Client Error', err));
     }
     async set(key, value) {

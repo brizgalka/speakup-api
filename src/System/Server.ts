@@ -37,7 +37,7 @@ class Server implements ServerInterface {
         this.app.use(bodyParser.json());
         this.app.use(cookieParser())
 
-        this.app.use(this.router)
+        this.app.use(this.router);
 
         this.app.listen(this.port,() => {
             console.log(`server started on port ${this.port}`)

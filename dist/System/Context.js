@@ -2,28 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApplicationContext = void 0;
 class ApplicationContext {
-    redis;
-    wss;
-    server;
-    servername;
-    mode;
-    tgBot;
-    prisma;
+    static redis;
+    static wss;
+    static server;
+    static servername;
+    static mode;
+    static tgBot;
+    static prisma;
     constructor(options) {
-        this.redis = options.redis;
-        this.wss = options.wss;
-        this.server = options.server;
-        this.prisma = options.prisma;
-        this.tgBot = options.tgBot;
-        this.servername = options.config.servername;
-        this.mode = options.config.mode;
+        ApplicationContext.redis = options.redis;
+        ApplicationContext.wss = options.wss;
+        ApplicationContext.server = options.server;
+        ApplicationContext.prisma = options.prisma;
+        ApplicationContext.tgBot = options.tgBot;
+        ApplicationContext.servername = options.config.servername;
+        ApplicationContext.mode = options.config.mode;
         console.log(`
             Server context: 
-            REDIS: ${this.redis != undefined} 
-            EXPRESS: ${this.server != undefined} 
-            WSS: ${this.wss != undefined}
-            PRISMA ${this.prisma != undefined}
-            TGBOT ${this.tgBot != undefined}
+            REDIS: ${ApplicationContext.redis != undefined} 
+            EXPRESS: ${ApplicationContext.server != undefined} 
+            WSS: ${ApplicationContext.wss != undefined}
+            PRISMA ${ApplicationContext.prisma != undefined}
+            TGBOT ${ApplicationContext.tgBot != undefined}
         `);
     }
 }

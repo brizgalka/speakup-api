@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Document</title>
+    <script defer src="30b0583d78159cd81c5b.bundle.js"></script></head>
+    <body>
+        <div class = "app">
+            <div class = "unconnected">
+                <h1>Sorry, but server cant accept your connection</h1>
+            </div>
+            <div class = "reg">
+                <h1>Registration</h1>
+                <h3>Username</h3>
+                <input placeholder="username" id = "username">
+                <br>
+                <h3>Email</h3>
+                <input placeholder="email" id = "email">
+                <br>
+                <h3>Password</h3>
+                <input placeholder="password" type="password" id = "password">
+                <br>
+                <button id = "send">Submit</button>
+            </div>
+        </div>
+        <div class = "waiting" style = "display: none">
+            <img src = "./static/loading.gif">
+            <h3>Your verify command is /verify <span id = "verify-code"></span></h3>
+            <p>Input them in telegram bot: @speakupconf_bot</p>
+        </div>
+    </body>
+</html>
