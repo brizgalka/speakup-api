@@ -16,15 +16,6 @@ interface ApplicationContextOptionsInterface {
     }
 }
 
-interface ApplicationContextInterface {
-    servername: string,
-    mode: string
-    redis: RedisServer,
-    wss: WsServer,
-    server: Server,
-    prisma: PrismaClient
-}
-
 class ApplicationContext {
 
     static redis: RedisServer;

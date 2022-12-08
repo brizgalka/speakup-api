@@ -1,5 +1,4 @@
 import {WebSocket, WebSocketServer} from "ws";
-import User from "@/App/ControllerModel/User";
 import {WsUser,UserStatus} from "@/App/ControllerModel/WsUser";
 import { v4 as uuidv4 } from 'uuid';
 

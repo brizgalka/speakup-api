@@ -3,7 +3,10 @@ import {NextFunction, Request, Response} from "express";
 import ApiError from "@/App/error/ApiError";
 import {ApplicationContext} from "@/System/Context";
 const prisma = new PrismaClient()
+import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
+
+const saltRounds = Number(process.env.saltRounds)
 
 class AuthController {
     async registration(req:Request,res:Response,next:NextFunction) {
@@ -60,11 +63,14 @@ class AuthController {
 
             const tokenValue = uuidv4()
 
+            const salt = bcrypt.genSaltSync(saltRounds);
+            const hash_password = bcrypt.hashSync(password, salt);
+
             const token = await prisma.verifyToken.create({
                 data: {
                     username,
                     email,
-                    password,
+                    password: hash_password,
                     value: tokenValue,
                     createdAt: String(Date.now())
                 }
