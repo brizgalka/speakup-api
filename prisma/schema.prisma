@@ -8,23 +8,47 @@ datasource db {
 }
 
 model User {
-    id        Int         @id @default(autoincrement())
-    createdAt String
+  id        Int    @id @default(autoincrement())
+  createdAt String
 
-    username  String
-    nickname  String?
-    password  String
-    email     String
-    photo     String      @default("user")
-    telegram  String      @unique
+  username String
+  nickname String?   @default("nickname")
+  password String
+  email    String
+  photo    String    @default("user")
+  telegram String    @unique
+  salt     String
+  Chats    Chat[]
+  Message  Message[]
 }
 
 model VerifyToken {
-    id        Int         @id @default(autoincrement())
-    createdAt String
+  id        Int    @id @default(autoincrement())
+  createdAt String
 
-    value     String      @unique
-    password  String
-    username  String      @unique
-    email     String      @unique
+  value    String @unique
+  password String
+  salt     String
+  username String @unique
+  email    String @unique
+}
+
+model Message {
+  id Int @id @default(autoincrement())
+
+  chat    Chat   @relation(fields: [chatId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
+  message String
+  chatId  Int
+  userId  Int
+}
+
+model Chat {
+  id        Int    @id @default(autoincrement())
+  createdAt String
+
+  users    User[]
+  messages Message[]
+
+  chat_id Int
 }

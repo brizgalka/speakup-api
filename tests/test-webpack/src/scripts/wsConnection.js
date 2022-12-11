@@ -1,9 +1,23 @@
 let socket = undefined;
 let connected = false;
-let HTML_unconnected;
-let REG_FORM;
 
-if(localStorage["WsUUID"] == undefined) localStorage["WsUUID"] = ""
+let HTML_unconnected = document.querySelector(".unconnected");
+let REG_FORM = document.querySelector(".reg");
+
+function changeConnectedStatus(to) {
+    connected = to
+    if(connected) {
+        HTML_unconnected.style.display = "none"
+        REG_FORM.style.display = "block"
+    } else {
+        HTML_unconnected.style.display = "block"
+        REG_FORM.style.display = "none"
+    }
+}
+
+changeConnectedStatus(false)
+
+if(localStorage["WsUUID"] == undefined) localStorage["WsUUID"] = "no"
 
 function connect_socket() {
     socket = new WebSocket("ws://localhost:6061",String(localStorage["WsUUID"]));
@@ -35,17 +49,6 @@ function connect_socket() {
     };
 }
 
-function changeConnectedStatus(to) {
-    connected = to
-    if(connected) {
-        HTML_unconnected.style.display = "none"
-        REG_FORM.style.display = "block"
-    } else {
-        HTML_unconnected.style.display = "block"
-        REG_FORM.style.display = "none"
-    }
-}
-
 function heartbeat() {
     if (!socket) return;
     if (socket.readyState !== 1) return;
@@ -57,10 +60,8 @@ function heartbeat() {
     ));
 }
 
-setInterval(heartbeat, 500);
+const interval = setInterval(heartbeat, 500);
 
 window.addEventListener("load", (event) => {
-    HTML_unconnected = document.querySelector(".unconnected");
-    REG_FORM = document.querySelector(".reg");
     connect_socket()
 })

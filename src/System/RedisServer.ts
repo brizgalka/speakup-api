@@ -34,6 +34,10 @@ class RedisServer implements RedisServerInterface{
         return await this.connection.get(key)
     }
 
+    async del(key: string) {
+        await this.connection.del(key)
+    }
+
     async disconnect() {
         await this.connection.disconnect();
     }

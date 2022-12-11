@@ -1,5 +1,5 @@
 import "./scripts/wsConnection.js"
-import "./scripts/scrip.jst"
+import "./scripts/script.js"
 import "./scripts/helper.js"
 
 import "./styles/app.less"

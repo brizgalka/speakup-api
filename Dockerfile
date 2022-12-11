@@ -1,6 +1,19 @@
-FROM node:16-alpine
+FROM node:10-alpine
+
+RUN apk update
+
 WORKDIR /app
-COPY . .
-RUN npm run start
-CMD ["node", "dist/main.js"]
-EXPOSE 3000
+
+COPY package*.json ./
+COPY tsconfig.json ./
+
+COPY src ./src
+
+RUN ls -a
+
+RUN npm install
+RUN npm run build
+
+EXPOSE 6060 6061
+
+CMD [ "node", "./dist/main.js" ]

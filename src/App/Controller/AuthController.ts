@@ -1,12 +1,14 @@
 import {PrismaClient} from "@prisma/client";
+const prisma = new PrismaClient()
 import {NextFunction, Request, Response} from "express";
 import ApiError from "@/App/error/ApiError";
+import jwt from "jsonwebtoken"
 import {ApplicationContext} from "@/System/Context";
-const prisma = new PrismaClient()
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 
 const saltRounds = Number(process.env.saltRounds)
+const token_secret = String(process.env.JWT_SECRET)
 
 class AuthController {
     async registration(req:Request,res:Response,next:NextFunction) {
@@ -69,6 +71,7 @@ class AuthController {
             const token = await prisma.verifyToken.create({
                 data: {
                     username,
+                    salt,
                     email,
                     password: hash_password,
                     value: tokenValue,
@@ -86,6 +89,7 @@ class AuthController {
             res.sendStatus(500)
         }
     }
+
     async verifyAccount(token: string,telegram: string) {
 
         const user_candidate = await prisma.user.findUnique({
@@ -112,6 +116,7 @@ class AuthController {
                     username: user_token?.username || "",
                     email: user_token?.email || "",
                     password: user_token?.password || "",
+                    salt: user_token?.salt || "",
                     createdAt: String(Date.now()),
                     telegram: telegram
                 }
@@ -121,19 +126,58 @@ class AuthController {
                     value: token
                 }
             })
+
             const user_uuid_connection = await ApplicationContext.redis.get(token)
             console.log("successful")
             if(user_uuid_connection != null) {
                 if (ApplicationContext.wss.verifyUUID(user_uuid_connection)) {
                     ApplicationContext.wss.sendMessage(user_uuid_connection,{
-                        "verify": "ok"
+                        "verify": {
+                            "status": "ok",
+                            "token": "sd"
+                        }
                     })
                 }
             }
+
+            await ApplicationContext.redis.del(token)
             return "Аккаунт успешно создан и привязан к вашему телеграмм!"
         }
     }
     async login(req:Request,res:Response,next:NextFunction) {
+
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+
+            const {username,password} = req.body;
+            const user_uuid = req.body.uuid;
+
+            if(!user_uuid) return next(ApiError.badRequest("Invalid UUID").response);
+            if (!username) return next(ApiError.badRequest("Invalid username").response);
+            if (!password) return next(ApiError.badRequest("Invalid password").response);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    username
+                }
+            })
+
+            if(user == null) {
+                return next(ApiError.badRequest("Wrong username or password").response);
+            }
+
+            const salt = user.salt;
+            const hashPassword = bcrypt.hashSync(password, salt);
+
+            if(user.password != hashPassword) {
+                return next(ApiError.badRequest("Wrong username or password").response);
+            }
+
+            return jwt.sign(username, token_secret, { expiresIn: '1800s' });
+        } catch (e: any) {
+            console.warn(e.toString())
+            res.sendStatus(500)
+        }
 
     }
     async checkToken(req:Request,res:Response,next:NextFunction) {

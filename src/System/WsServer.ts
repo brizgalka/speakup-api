@@ -45,6 +45,7 @@ class WsServer implements WsServerInterface {
                     this.connections.delete((ws_connection))
                 }
                 console.log(ws_user)
+                console.log(this.connections.size)
                 console.log(Date.now() - ws_user.lastPing)
             }
         },1500)
