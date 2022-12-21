@@ -8,7 +8,8 @@ interface ServerInterface {
     port: number,
     app: Application,
     router: Express,
-    prisma: PrismaClient
+    prisma: PrismaClient,
+    cookieSecret: string
 }
 
 interface ServerOptionsInterface {
@@ -16,6 +17,7 @@ interface ServerOptionsInterface {
     app: Application,
     router: Express,
     prisma: PrismaClient,
+    cookieSecret: string,
 }
 
 class Server implements ServerInterface {
@@ -24,18 +26,20 @@ class Server implements ServerInterface {
     readonly app: Application;
     readonly router: Express;
     readonly prisma: PrismaClient;
+    readonly cookieSecret: string;
 
     constructor(options: ServerOptionsInterface) {
         this.port = options.port
         this.app = options.app
         this.router = options.router
         this.prisma = options.prisma
+        this.cookieSecret = options.cookieSecret
 
         this.app.use(cors())
 
         this.app.use(bodyParser.urlencoded());
         this.app.use(bodyParser.json());
-        this.app.use(cookieParser())
+        this.app.use(cookieParser(this.cookieSecret))
 
         this.app.use(this.router);
 

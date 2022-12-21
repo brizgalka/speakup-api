@@ -20,6 +20,7 @@ const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
 const REDIS_URL = String(process.env.REDIS_URL);
 const TG_TOKEN = String(process.env.TG_TOKEN);
 const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
+const COOKIE_SECRET = String(process.env.COOKIE_SECRET);
 
 const mode = String(process.env.MODE);
 
@@ -39,7 +40,8 @@ async function startup() {
         port: SERVER_PORT,
         app,
         router,
-        prisma
+        prisma,
+        cookieSecret: COOKIE_SECRET
     })
 
     const tgBot: TgBot = await new TgBot({

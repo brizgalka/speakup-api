@@ -41,12 +41,10 @@ class WsServer implements WsServerInterface {
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0]
                 const ws_user = connection[1]
+                ws_connection.ping()
                 if(Date.now() - ws_user.lastPing > this.MAX_WSCONNECTION_PINGING) {
                     this.connections.delete((ws_connection))
                 }
-                console.log(ws_user)
-                console.log(this.connections.size)
-                console.log(Date.now() - ws_user.lastPing)
             }
         },1500)
     }

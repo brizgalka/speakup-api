@@ -17,7 +17,7 @@ window.addEventListener("load", () => {
             "username": username
         });
 
-        xhr.open('POST', 'http://localhost:6060/user/registration')
+        xhr.open('POST', 'http://localhost:6060/auth/registration')
 
         xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 

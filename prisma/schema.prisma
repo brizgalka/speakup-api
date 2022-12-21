@@ -8,8 +8,10 @@ datasource db {
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  createdAt String
+  id Int @id @default(autoincrement())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   username String
   nickname String?   @default("nickname")
@@ -19,12 +21,16 @@ model User {
   telegram String    @unique
   salt     String
   Chats    Chat[]
+  User1    Dialog[]  @relation("user1_chat")
+  User2    Dialog[]  @relation("user2_chat")
   Message  Message[]
 }
 
 model VerifyToken {
-  id        Int    @id @default(autoincrement())
-  createdAt String
+  id Int @id @default(autoincrement())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   value    String @unique
   password String
@@ -36,19 +42,44 @@ model VerifyToken {
 model Message {
   id Int @id @default(autoincrement())
 
-  chat    Chat   @relation(fields: [chatId], references: [id])
-  user    User   @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chat   Chat @relation(fields: [chatId], references: [id])
+  sender User @relation(fields: [senderId], references: [id])
+
   message String
-  chatId  Int
-  userId  Int
+
+  chatId   Int
+  senderId Int
+  Dialog   Dialog? @relation(fields: [dialogId], references: [id])
+  dialogId Int?
+}
+
+model Dialog {
+  id Int @id @default(autoincrement())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user1Id Int
+  user2Id Int
+
+  user1 User @relation("user1_chat", fields: [user1Id], references: [id])
+  user2 User @relation("user2_chat", fields: [user2Id], references: [id])
+
+  messages Message[]
+  secret   String
 }
 
 model Chat {
-  id        Int    @id @default(autoincrement())
-  createdAt String
+  id Int @id @default(autoincrement())
 
-  users    User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+
   messages Message[]
-
-  chat_id Int
+  secret   String
 }

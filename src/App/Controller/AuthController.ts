@@ -10,6 +10,10 @@ import { v4 as uuidv4 } from 'uuid';
 const saltRounds = Number(process.env.saltRounds)
 const token_secret = String(process.env.JWT_SECRET)
 
+interface JwtPayload {
+    username: string
+}
+
 class AuthController {
     async registration(req:Request,res:Response,next:NextFunction) {
         try {
@@ -48,8 +52,8 @@ class AuthController {
             })
 
             if(token_candidate != undefined && token_candidate != null) {
-                const token_createdAt = Number(token_candidate.createdAt)
-                const difference = Date.now() - token_createdAt
+                const token_createdAt = token_candidate.createdAt
+                const difference = Date.now() - token_createdAt.getDate()
                 console.log(token_candidate.createdAt)
                 if(parseInt(String(difference / 1000)) > 300) {
                     await prisma.verifyToken.delete({
@@ -75,7 +79,7 @@ class AuthController {
                     email,
                     password: hash_password,
                     value: tokenValue,
-                    createdAt: String(Date.now())
+                    createdAt: new Date()
                 }
             })
 
@@ -117,7 +121,7 @@ class AuthController {
                     email: user_token?.email || "",
                     password: user_token?.password || "",
                     salt: user_token?.salt || "",
-                    createdAt: String(Date.now()),
+                    createdAt: new Date(),
                     telegram: telegram
                 }
             })
@@ -144,15 +148,32 @@ class AuthController {
             return "Аккаунт успешно создан и привязан к вашему телеграмм!"
         }
     }
-    async login(req:Request,res:Response,next:NextFunction) {
 
+    async getUser(jwtoken: string) {
+        try {
+            const decoded = jwt.verify(jwtoken, token_secret) as JwtPayload;
+
+            if(decoded != undefined) {
+                const username: string = decoded.username;
+                const user = await prisma.user.findFirst({
+                    where: {
+                        username
+                    }
+                })
+
+                return user
+            }
+        } catch (e: any) {
+            console.warn(e.toString())
+        }
+    }
+
+    async login(req:Request,res:Response,next:NextFunction) {
         try {
             if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
 
             const {username,password} = req.body;
-            const user_uuid = req.body.uuid;
 
-            if(!user_uuid) return next(ApiError.badRequest("Invalid UUID").response);
             if (!username) return next(ApiError.badRequest("Invalid username").response);
             if (!password) return next(ApiError.badRequest("Invalid password").response);
 
@@ -173,7 +194,15 @@ class AuthController {
                 return next(ApiError.badRequest("Wrong username or password").response);
             }
 
-            return jwt.sign(username, token_secret, { expiresIn: '1800s' });
+            const token = jwt.sign({username}, token_secret, { expiresIn: '1800s' })
+
+            res.cookie("token",token,{
+                maxAge: 3600 * 24,
+                httpOnly: true
+            })
+            res.json({
+                token
+            })
         } catch (e: any) {
             console.warn(e.toString())
             res.sendStatus(500)
@@ -181,7 +210,13 @@ class AuthController {
 
     }
     async checkToken(req:Request,res:Response,next:NextFunction) {
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
 
+            res.send("auth")
+        } catch (e: any) {
+            console.warn(e.toString())
+        }
     }
 }
 

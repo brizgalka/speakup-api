@@ -1,11 +1,14 @@
-import Router from "express"
-import UserController from "@/App/Controller/UserController"
+import express from "express"
+const router = express.Router()
+import ChatController from "@/App/Controller/ChatController";
+import UserController from "@/App/Controller/UserController";
 
-const router = Router()
+const userController = new UserController()
+const chatController = new ChatController();
 
-const userController = new UserController();
-
-router.post("/sendMessage",userController.sendMessage)
-router.post("/deleteMessage",userController.deleteMessage)
+router.post("/sendMessage",chatController.sendMessage)
+router.post("/deleteMessage",chatController.deleteMessage)
+router.post("/createChat",chatController.createChat)
+router.get("/getUserData",userController.getUserData)
 
 export default router

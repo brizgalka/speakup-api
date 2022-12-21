@@ -42,6 +42,7 @@ function connect_socket() {
         console.log("DAWWDADW")
         connect_socket()
     };
+    socket.onping = function(mess) {console.log(this.id+' receive a ping : '+mess) }
     socket.onerror = function(error) {
         changeConnectedStatus(false)
         console.log(`[error]`);

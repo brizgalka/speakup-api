@@ -6,6 +6,7 @@ const wsServer = ApplicationContext.wss;
 
 export default function verifyUser(req: Request,res: Response,next: NextFunction) {
     const uuid = req.body.uuid;
+    console.log(uuid)
     if(uuid == undefined) {
         return next(ApiError.badRequest("Invalid UUID. Try again").response)
     }
