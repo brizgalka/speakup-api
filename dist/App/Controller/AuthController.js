@@ -4,10 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const ApiError_1 = __importDefault(require("@/App/error/ApiError"));
-const Context_1 = require("@/System/Context");
 const prisma = new client_1.PrismaClient();
+const ApiError_1 = __importDefault(require("@/App/error/ApiError"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const Context_1 = require("@/System/Context");
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const uuid_1 = require("uuid");
+const saltRounds = Number(process.env.saltRounds);
+const token_secret = String(process.env.JWT_SECRET);
 class AuthController {
     async registration(req, res, next) {
         try {
@@ -45,8 +49,8 @@ class AuthController {
                 },
             });
             if (token_candidate != undefined && token_candidate != null) {
-                const token_createdAt = Number(token_candidate.createdAt);
-                const difference = Date.now() - token_createdAt;
+                const token_createdAt = token_candidate.createdAt;
+                const difference = Date.now() - token_createdAt.getDate();
                 console.log(token_candidate.createdAt);
                 if (parseInt(String(difference / 1000)) > 300) {
                     await prisma.verifyToken.delete({
@@ -61,13 +65,16 @@ class AuthController {
                 }
             }
             const tokenValue = (0, uuid_1.v4)();
+            const salt = bcrypt_1.default.genSaltSync(saltRounds);
+            const hash_password = bcrypt_1.default.hashSync(password, salt);
             const token = await prisma.verifyToken.create({
                 data: {
                     username,
+                    salt,
                     email,
-                    password,
+                    password: hash_password,
                     value: tokenValue,
-                    createdAt: String(Date.now())
+                    createdAt: new Date()
                 }
             });
             await Context_1.ApplicationContext.redis.set(tokenValue, user_uuid);
@@ -100,10 +107,11 @@ class AuthController {
         else {
             await prisma.user.create({
                 data: {
-                    username: user_token?.username || "",
-                    email: user_token?.email || "",
-                    password: user_token?.password || "",
-                    createdAt: String(Date.now()),
+                    username: user_token.username,
+                    email: user_token.email,
+                    password: user_token.password,
+                    salt: user_token.salt,
+                    createdAt: new Date(),
                     telegram: telegram
                 }
             });
@@ -117,16 +125,79 @@ class AuthController {
             if (user_uuid_connection != null) {
                 if (Context_1.ApplicationContext.wss.verifyUUID(user_uuid_connection)) {
                     Context_1.ApplicationContext.wss.sendMessage(user_uuid_connection, {
-                        "verify": "ok"
+                        "verify": {
+                            "status": "ok",
+                            "token": "sd"
+                        }
                     });
                 }
             }
+            await Context_1.ApplicationContext.redis.del(token);
             return "Аккаунт успешно создан и привязан к вашему телеграмм!";
         }
     }
+    async getUser(jwtoken) {
+        try {
+            const decoded = jsonwebtoken_1.default.verify(jwtoken, token_secret);
+            if (decoded != undefined) {
+                const username = decoded.username;
+                const user = await prisma.user.findFirst({
+                    where: {
+                        username
+                    }
+                });
+                return user;
+            }
+        }
+        catch (e) {
+            console.warn(e.toString());
+        }
+    }
     async login(req, res, next) {
+        try {
+            if (req.body == undefined)
+                return next(ApiError_1.default.badRequest("Invalid body").response);
+            const { username, password } = req.body;
+            if (!username)
+                return next(ApiError_1.default.badRequest("Invalid username").response);
+            if (!password)
+                return next(ApiError_1.default.badRequest("Invalid password").response);
+            const user = await prisma.user.findFirst({
+                where: {
+                    username
+                }
+            });
+            if (user == null) {
+                return next(ApiError_1.default.badRequest("Wrong username or password").response);
+            }
+            const salt = user.salt;
+            const hashPassword = bcrypt_1.default.hashSync(password, salt);
+            if (user.password != hashPassword) {
+                return next(ApiError_1.default.badRequest("Wrong username or password").response);
+            }
+            const token = jsonwebtoken_1.default.sign({ username }, token_secret, { expiresIn: '1800s' });
+            res.cookie("token", token, {
+                maxAge: 3600 * 24 * 25,
+                httpOnly: true
+            });
+            res.json({
+                token
+            });
+        }
+        catch (e) {
+            console.warn(e.toString());
+            res.sendStatus(500);
+        }
     }
     async checkToken(req, res, next) {
+        try {
+            if (req.body == undefined)
+                return next(ApiError_1.default.badRequest("Invalid body").response);
+            res.send("auth");
+        }
+        catch (e) {
+            console.warn(e.toString());
+        }
     }
 }
 exports.default = AuthController;

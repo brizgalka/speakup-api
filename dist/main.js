@@ -30,6 +30,7 @@ exports.AppContext = void 0;
 const module_alias_1 = __importDefault(require("module-alias"));
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
+dotenv.config({ path: '.env.tg' });
 module_alias_1.default.addAlias("@", __dirname);
 (0, module_alias_1.default)();
 const express_1 = __importDefault(require("express"));
@@ -45,6 +46,7 @@ const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
 const REDIS_URL = String(process.env.REDIS_URL);
 const TG_TOKEN = String(process.env.TG_TOKEN);
 const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
+const COOKIE_SECRET = String(process.env.COOKIE_SECRET);
 const mode = String(process.env.MODE);
 let AppContext;
 exports.AppContext = AppContext;
@@ -59,7 +61,8 @@ async function startup() {
         port: SERVER_PORT,
         app,
         router: router_1.default,
-        prisma
+        prisma,
+        cookieSecret: COOKIE_SECRET
     });
     const tgBot = await new TgBot_1.TgBot({
         token: TG_TOKEN

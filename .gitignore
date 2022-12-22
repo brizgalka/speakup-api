@@ -1,4 +1,4 @@
 .idea
 tests/test-webpack/node_modules
 node_modules
-/.tgtoken
+/.env.tg

@@ -22,6 +22,9 @@ class RedisServer {
     async get(key) {
         return await this.connection.get(key);
     }
+    async del(key) {
+        await this.connection.del(key);
+    }
     async disconnect() {
         await this.connection.disconnect();
     }

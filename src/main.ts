@@ -1,6 +1,7 @@
 import moduleAlias from "module-alias";
 import * as dotenv from 'dotenv'
 dotenv.config()
+dotenv.config({ path: '.env.tg' })
 
 moduleAlias.addAlias("@",__dirname);
 moduleAlias()

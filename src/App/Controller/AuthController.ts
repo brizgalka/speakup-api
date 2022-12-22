@@ -117,10 +117,10 @@ class AuthController {
         } else {
             await prisma.user.create({
                 data: {
-                    username: user_token?.username || "",
-                    email: user_token?.email || "",
-                    password: user_token?.password || "",
-                    salt: user_token?.salt || "",
+                    username: user_token.username,
+                    email: user_token.email,
+                    password: user_token.password,
+                    salt: user_token.salt,
                     createdAt: new Date(),
                     telegram: telegram
                 }
@@ -197,7 +197,7 @@ class AuthController {
             const token = jwt.sign({username}, token_secret, { expiresIn: '1800s' })
 
             res.cookie("token",token,{
-                maxAge: 3600 * 24,
+                maxAge: 3600 * 24 * 25,
                 httpOnly: true
             })
             res.json({

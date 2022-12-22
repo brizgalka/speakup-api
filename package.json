@@ -24,9 +24,8 @@
   "scripts": {
     "start:ts": "ts-node src/main.ts",
     "start": "node dist/main.js",
-    "build": "npm run build:clean && npm run build:ts",
+    "build": "npm run build:ts",
     "build:ts": "tsc",
-    "build:clean": "rimraf dist",
     "dev": "ts-node-dev --respawn ./src/main.ts",
     "git-push": "git-push.bat",
     "git-clone": "git clone https://github.com/brizgalka/speakup-api.git",
