@@ -54,11 +54,17 @@ class WsServer implements WsServerInterface {
     }
 
     sendMessage(uuid: string,message: object) {
+        console.log("SENDING MESSAGE")
+        console.log(uuid)
         if(this.verifyUUID(uuid)) {
+            console.log("VERIFY")
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0]
                 const ws_user = connection[1]
+                console.log(ws_user.uuid)
                 if (ws_user.uuid == uuid) {
+                    console.log(uuid)
+                    console.log(ws_user.uuid)
                     ws_connection.send(JSON.stringify(message))
                 }
             }

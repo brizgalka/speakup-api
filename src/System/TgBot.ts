@@ -41,7 +41,7 @@ class TgBot implements TgBotInterface {
             if(token == undefined) {
                 this.bot.sendMessage(chatId, `/verify <token>`);
             } else {
-                const result = await authController.verifyAccount(token,String(msg.chat.id))
+                const result = await authController.verifyAccount(token,String(msg.chat.id)) as string;
                 this.bot.sendMessage(chatId, result);
             }
         });

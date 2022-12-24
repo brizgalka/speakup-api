@@ -15,6 +15,7 @@ const authController = new AuthController();
 
 interface dbUser {
     id: number
+    username: string,
 }
 
 interface dbDialog {
@@ -79,6 +80,8 @@ export default class ChatController {
                     secret: genSecret(16),
                     user1Id: user.id,
                     user2Id: new_user.id,
+                    user1Name: user.username,
+                    user2Name: new_user.username
                 }
             })
 

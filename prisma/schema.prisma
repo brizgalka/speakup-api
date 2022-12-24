@@ -64,6 +64,9 @@ model Dialog {
   user1Id Int
   user2Id Int
 
+  user1Name String
+  user2Name String
+
   user1 User @relation("user1_chat", fields: [user1Id], references: [id])
   user2 User @relation("user2_chat", fields: [user2Id], references: [id])
 

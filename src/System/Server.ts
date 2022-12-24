@@ -37,7 +37,7 @@ class Server implements ServerInterface {
 
         this.app.use(cors(
             {
-                origin: 'http://localhost:3000',
+                origin: 'http://26.4.83.74:3000',
                 methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
                 preflightContinue: false,
                 credentials:true,

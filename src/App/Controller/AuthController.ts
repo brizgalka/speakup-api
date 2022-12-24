@@ -94,58 +94,76 @@ class AuthController {
         }
     }
 
-    async verifyAccount(token: string,telegram: string) {
+    async validateVerifyToken(req:Request,res:Response,next:NextFunction) {
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
 
-        const user_candidate = await prisma.user.findUnique({
-            where: {
-                telegram
-            }
-        })
+            const {verifyToken} = req.body;
 
-        if(user_candidate != null) {
-            return "Аккаунт уже привязан"
+            if (!verifyToken) return next(ApiError.badRequest("Invalid verifyToken").response);
+
+            const result = await ApplicationContext.redis.get(verifyToken)
+
+            if(result) { res.sendStatus(200) } else { res.sendStatus(500) }
+        }  catch (e: any) {
+            console.warn(e.toString())
         }
+    }
 
-        const user_token = await prisma.verifyToken.findFirst({
-            where: {
-                value: token
-            }
-        });
-
-        if(user_token == null) {
-            return "Неизвестный токен"
-        } else {
-            await prisma.user.create({
-                data: {
-                    username: user_token.username,
-                    email: user_token.email,
-                    password: user_token.password,
-                    salt: user_token.salt,
-                    createdAt: new Date(),
-                    telegram: telegram
+    async verifyAccount(token: string,telegram: string) {
+        try {
+            const user_candidate = await prisma.user.findUnique({
+                where: {
+                    telegram
                 }
             })
-            await prisma.verifyToken.delete({
+
+            if (user_candidate != null) {
+                return "Аккаунт уже привязан"
+            }
+
+            const user_token = await prisma.verifyToken.findFirst({
                 where: {
                     value: token
                 }
-            })
+            });
 
-            const user_uuid_connection = await ApplicationContext.redis.get(token)
-            console.log("successful")
-            if(user_uuid_connection != null) {
-                if (ApplicationContext.wss.verifyUUID(user_uuid_connection)) {
-                    ApplicationContext.wss.sendMessage(user_uuid_connection,{
-                        "verify": {
-                            "status": "ok",
-                            "token": "sd"
-                        }
-                    })
+            if (user_token == null) {
+                return "Неизвестный токен"
+            } else {
+                await prisma.user.create({
+                    data: {
+                        username: user_token.username,
+                        email: user_token.email,
+                        password: user_token.password,
+                        salt: user_token.salt,
+                        createdAt: new Date(),
+                        telegram: telegram
+                    }
+                })
+                await prisma.verifyToken.delete({
+                    where: {
+                        value: token
+                    }
+                })
+
+                const user_uuid_connection = await ApplicationContext.redis.get(token)
+                console.log(user_uuid_connection)
+                console.log(ApplicationContext.wss)
+                if (user_uuid_connection != null) {
+                    if (ApplicationContext.wss.verifyUUID(user_uuid_connection)) {
+                        ApplicationContext.wss.sendMessage(user_uuid_connection, {
+                            "verify": {
+                                "status": "ok",
+                            }
+                        })
+                    }
                 }
+                await ApplicationContext.redis.del(token)
+                return "Аккаунт успешно создан и привязан к вашему телеграмм!"
             }
-
-            await ApplicationContext.redis.del(token)
-            return "Аккаунт успешно создан и привязан к вашему телеграмм!"
+        } catch (e: any) {
+            console.warn(e.toString())
         }
     }
 
@@ -255,7 +273,7 @@ class AuthController {
                 }
             })
 
-            ApplicationContext.redis.del(hashId)
+            await ApplicationContext.redis.del(hashId)
 
             res.send(200)
         }  catch (e: any) {

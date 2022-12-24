@@ -12,4 +12,6 @@ router.post("/register",authController.registration);
 router.post("/checkToken",AuthMiddleware, authController.checkToken);
 router.post("/new-password", authController.newPassword);
 router.post("/validate-hashId", authController.validateHashId);
-export default router
+router.post("/validate-verifyToken", authController.validateVerifyToken);
+
+export default router;
