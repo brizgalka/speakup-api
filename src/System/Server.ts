@@ -35,13 +35,21 @@ class Server implements ServerInterface {
         this.prisma = options.prisma
         this.cookieSecret = options.cookieSecret
 
-        this.app.use(cors())
+        this.app.use(cors(
+            {
+                origin: 'http://localhost:3000',
+                methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+                preflightContinue: false,
+                credentials:true,
+                optionsSuccessStatus: 204
+            }
+        ))
 
         this.app.use(bodyParser.urlencoded());
         this.app.use(bodyParser.json());
         this.app.use(cookieParser(this.cookieSecret))
 
-        this.app.use(this.router);
+        this.app.use("/api",this.router);
 
         this.app.listen(this.port,() => {
             console.log(`server started on port ${this.port}`)

@@ -4,7 +4,7 @@ import {NextFunction, Request, Response} from "express";
 import ApiError from "@/App/error/ApiError";
 import jwt from "jsonwebtoken"
 import {ApplicationContext} from "@/System/Context";
-import bcrypt from "bcrypt";
+import bcrypt, {hash} from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 
 const saltRounds = Number(process.env.saltRounds)
@@ -22,7 +22,7 @@ class AuthController {
             const {username,password,email} = req.body;
             const user_uuid = req.body.uuid;
 
-            if(!user_uuid) return next(ApiError.badRequest("Invalid UUID").response);
+            if (!user_uuid) return next(ApiError.badRequest("Invalid UUID").response);
             if (!username) return next(ApiError.badRequest("Invalid username").response);
             if (!password) return next(ApiError.badRequest("Invalid password").response);
             if (!email) return next(ApiError.badRequest("Invalid email").response);
@@ -51,7 +51,7 @@ class AuthController {
                 },
             })
 
-            if(token_candidate != undefined && token_candidate != null) {
+            if(token_candidate != null) {
                 const token_createdAt = token_candidate.createdAt
                 const difference = Date.now() - token_createdAt.getDate()
                 console.log(token_candidate.createdAt)
@@ -110,7 +110,7 @@ class AuthController {
             where: {
                 value: token
             }
-        })
+        });
 
         if(user_token == null) {
             return "Неизвестный токен"
@@ -165,6 +165,102 @@ class AuthController {
             }
         } catch (e: any) {
             console.warn(e.toString())
+        }
+    }
+
+    async forgotPassword(req:Request,res:Response,next:NextFunction){
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+
+            const {username} = req.body;
+            const user_uuid = req.body.uuid;
+
+            if (!username) return next(ApiError.badRequest("Invalid username").response);
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    username
+                }
+            })
+
+            if(user == null) {
+                return next(ApiError.badRequest("Wrong username").response);
+            }
+
+            const salt = bcrypt.genSaltSync(saltRounds);
+
+            const uuid1 = uuidv4()
+            const hash = bcrypt.hashSync(user_uuid, salt);
+            const uuid2 = uuidv4()
+            const hash_id = uuid1 + hash + uuid2
+
+            await ApplicationContext.redis.set(hash_id,user.username)
+            await ApplicationContext.tgBot.bot.sendMessage(user.telegram,`hello, your reset link
+                http://localhost:3000/auth/forgot-password/auth-new-password/${hash_id}
+            `)
+            res.send("Code sent to your telegram")
+        } catch (e: any) {
+            console.warn(e.toString())
+            res.sendStatus(500)
+        }
+    }
+    async validateHashId(req:Request,res:Response,next:NextFunction) {
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+
+            const {hashId} = req.body;
+
+            if (!hashId) return next(ApiError.badRequest("Invalid hashId").response);
+
+            const result = await ApplicationContext.redis.get(hashId)
+
+            console.log(result)
+
+            if(result) {
+                res.sendStatus(200)
+            } else {
+                return next(ApiError.badRequest("Invalid hashId").response);
+            }
+        }  catch (e: any) {
+            console.warn(e.toString())
+            res.sendStatus(500)
+        }
+    }
+
+    async newPassword(req:Request,res:Response,next:NextFunction) {
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+
+            const {newPassword,hashId} = req.body;
+
+            console.log(newPassword)
+
+            if (!newPassword) return next(ApiError.badRequest("Invalid newPassword").response);
+            if (!hashId) return next(ApiError.badRequest("Invalid hashId").response);
+
+            const username = await ApplicationContext.redis.get(hashId)
+
+            if(!username) return next(ApiError.badRequest("Invalid hashId").response);
+
+            const salt = bcrypt.genSaltSync(saltRounds);
+            const hash_password = bcrypt.hashSync(newPassword, salt);
+
+            const user = await prisma.user.update({
+                where: {
+                    username
+                },
+                data: {
+                    password: hash_password,
+                    salt
+                }
+            })
+
+            ApplicationContext.redis.del(hashId)
+
+            res.send(200)
+        }  catch (e: any) {
+            console.warn(e.toString())
+            res.sendStatus(500)
         }
     }
 

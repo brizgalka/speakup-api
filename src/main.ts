@@ -35,7 +35,9 @@ async function startup() {
     const wsServer: WsServer = await new WsServer({
         WEBSOCKET_PORT,
         MAX_WSCONNECTION_PINGING
-    })
+    });
+
+    console.log(wsServer)
 
     const server: Server = await new Server({
         port: SERVER_PORT,
