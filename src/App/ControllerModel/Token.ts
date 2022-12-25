@@ -1,4 +1,4 @@
-export default interface VerifyToken {
+export default interface Token {
     value: string,
     username: string,
     password: string,

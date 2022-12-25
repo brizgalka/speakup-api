@@ -14,6 +14,8 @@ interface JwtPayload {
     username: string
 }
 
+const jwtMaxAge = Number(process.env.jwtMaxAge)
+
 class AuthController {
     async registration(req:Request,res:Response,next:NextFunction) {
         try {
@@ -311,7 +313,7 @@ class AuthController {
             const token = jwt.sign({username}, token_secret, { expiresIn: '1800s' })
 
             res.cookie("token",token,{
-                maxAge: 3600 * 24 * 25,
+                maxAge: jwtMaxAge,
                 httpOnly: true
             })
             res.json({

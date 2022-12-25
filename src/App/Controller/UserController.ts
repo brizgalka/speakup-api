@@ -14,7 +14,8 @@ interface sendUserData {
     username: string,
     nickname: string,
     photo: string,
-    email: string
+    email: string,
+    id: number
 }
 
 class UserController {
@@ -33,10 +34,12 @@ class UserController {
             const user = await authController.getUser(token) as sendUserData;
 
             res.json({
+                "id": user.id,
                 "username": user.username,
                 "nickname": user.nickname,
                 "photo": user.photo,
-                "email": user.email
+                "email": user.email,
+                token
             })
         } catch (e: any) {
             console.warn(e.toString())

@@ -3,13 +3,14 @@ import ApiError from "@/App/error/ApiError";
 import AuthController from "./AuthController"
 import {PrismaClient} from "@prisma/client";
 import {decrypt,encrypt,genSecret} from "@/Utils/CRYPTO_Manager"
+import {ApplicationContext} from "@/System/Context";
 
 interface EncryptObject {
     iv: string,
     content: string
 }
-
 const prisma = new PrismaClient()
+
 
 const authController = new AuthController();
 
@@ -22,6 +23,8 @@ interface dbDialog {
     id: number,
     user1Id: number,
     user2Id: number,
+    user1Name: string,
+    user2Name: string,
     secret: string
 }
 
@@ -35,6 +38,8 @@ export default class ChatController {
 
             const {username} = req.body;
             const token = req.cookies['token'];
+
+            console.log('creating chat')
 
             const user = await authController.getUser(token) as dbUser;
 
@@ -81,7 +86,8 @@ export default class ChatController {
                     user1Id: user.id,
                     user2Id: new_user.id,
                     user1Name: user.username,
-                    user2Name: new_user.username
+                    user2Name: new_user.username,
+                    DialogName: user.username + " and " + new_user.username
                 }
             })
 
@@ -112,6 +118,9 @@ export default class ChatController {
             const {message,chatId} = req.body;
             const token = req.cookies['token'];
 
+            console.log(message)
+            console.log(chatId)
+
             const user: dbUser = await authController.getUser(token) as dbUser;
 
             const dialog = await ChatController.getDialog(chatId,user) as dbDialog
@@ -119,8 +128,6 @@ export default class ChatController {
             const secretMessage = encrypt(message,dialog.secret)
 
             const resultMessage = JSON.stringify(secretMessage)
-
-            console.log(dialog)
 
             if(dialog) {
                 await prisma.message.create({
@@ -131,6 +138,21 @@ export default class ChatController {
                         dialogId: dialog.id
                     }
                 })
+                let reciever = ""
+                if(dialog.user1Id == user.id) {
+                    reciever = dialog.user2Name
+                } else {
+                    reciever = dialog.user1Name
+                }
+                for (const connection of ApplicationContext.wss.connections.entries()) {
+                    const ws_connection = connection[0]
+                    const ws_user = connection[1]
+                    if(ws_user.user.username == reciever) {
+                        ApplicationContext.wss.sendMessage(ws_user.uuid,{
+                            "message": "new message"
+                        })
+                    }
+                }
                 res.send(200)
             } else {
                 res.send("Chat not found")

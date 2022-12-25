@@ -20,6 +20,8 @@ interface ServerOptionsInterface {
     cookieSecret: string,
 }
 
+const CorsOrigin = process.env.CORS_ORIGIN
+
 class Server implements ServerInterface {
 
     readonly port: number;
@@ -37,7 +39,7 @@ class Server implements ServerInterface {
 
         this.app.use(cors(
             {
-                origin: 'http://26.4.83.74:3000',
+                origin: CorsOrigin,
                 methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
                 preflightContinue: false,
                 credentials:true,

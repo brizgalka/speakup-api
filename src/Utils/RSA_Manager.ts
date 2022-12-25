@@ -1,7 +1,7 @@
 import {generateKeyPairSync, publicEncrypt, privateDecrypt, KeyLike, KeyPairSyncResult} from 'crypto'
 
 const PassPhrase = process.env.RSA_PassPhrase
-const Bits = Number(process.env.RSA_Bits)
+const Bits = Number(process.env.RSA_Bits);
 
 export default class RSA_Manager {
 

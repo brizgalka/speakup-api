@@ -1,6 +1,7 @@
 import {WebSocket, WebSocketServer} from "ws";
 import {WsUser,UserStatus} from "@/App/ControllerModel/WsUser";
 import { v4 as uuidv4 } from 'uuid';
+import AuthController from "@/App/Controller/AuthController";
 
 interface WsServerInterface {
     WEBSOCKET_PORT: number,
@@ -15,12 +16,15 @@ interface WsOptionsInterface {
     MAX_WSCONNECTION_PINGING: number
 }
 
+const authController = new AuthController()
+
 class WsServer implements WsServerInterface {
 
     readonly WEBSOCKET_PORT: number;
     readonly WEBSOCKET_SERVER: WebSocketServer;
     readonly MAX_WSCONNECTION_PINGING: number;
     id_connection: number;
+
     connections = new Map<WebSocket,WsUser>();
 
     constructor(options: WsOptionsInterface) {
@@ -37,10 +41,11 @@ class WsServer implements WsServerInterface {
 
         this.id_connection = 0
 
-        const interval = setInterval(() => {
+        const interval1 = setInterval(() => {
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0]
                 const ws_user = connection[1]
+                console.log(ws_user)
                 ws_connection.ping()
                 if(Date.now() - ws_user.lastPing > this.MAX_WSCONNECTION_PINGING) {
                     this.connections.delete((ws_connection))
@@ -50,21 +55,15 @@ class WsServer implements WsServerInterface {
     }
 
     onOpen(ws: WebSocket) {
-        ws.send("hello")
+        ws.send("hello");
     }
 
     sendMessage(uuid: string,message: object) {
-        console.log("SENDING MESSAGE")
-        console.log(uuid)
         if(this.verifyUUID(uuid)) {
-            console.log("VERIFY")
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0]
                 const ws_user = connection[1]
-                console.log(ws_user.uuid)
                 if (ws_user.uuid == uuid) {
-                    console.log(uuid)
-                    console.log(ws_user.uuid)
                     ws_connection.send(JSON.stringify(message))
                 }
             }
@@ -78,7 +77,7 @@ class WsServer implements WsServerInterface {
                 const ws_connection = connection[0]
                 const ws_user = connection[1]
                 if (ws_user.uuid == ws.protocol) {
-                    this.connections.set(ws_connection,ws_user)
+                    this.connections.set(ws,ws_user)
                     found = true;
                 }
             }
@@ -90,8 +89,8 @@ class WsServer implements WsServerInterface {
                 lastPing: Date.now(),
                 uuid,
                 user: {
-                    username: "AWD",
-                }
+                    username: null,
+                },
             }
             ws.send(JSON.stringify({
                 "setWsUUID": uuid
@@ -99,7 +98,6 @@ class WsServer implements WsServerInterface {
             this.id_connection += 1
             this.connections.set(ws, wsUser)
         }
-        console.log(`connections: ${this.connections.size}`)
         ws.on("message",(data: Buffer) => this.onMessage(data,ws))
     }
     verifyUUID(uuid: string) {
@@ -113,7 +111,7 @@ class WsServer implements WsServerInterface {
         return false;
     }
 
-    onMessage(data: Buffer,ws: WebSocket) {
+    async onMessage(data: Buffer,ws: WebSocket) {
         const msg = data.toString()
         const message = JSON.parse(msg)
 
@@ -129,6 +127,37 @@ class WsServer implements WsServerInterface {
                     ws.close()
                 }
                 break;
+            }
+            case "isAuth": {
+                const ws_user = this.connections.get(ws);
+                if(ws_user != undefined) {
+                    if (ws_user.user.username != undefined && ws_user.user.username != null) {
+                        ws.send(JSON.stringify({
+                            "message": "auth"
+                        }))
+                    } else {
+                        ws.send(JSON.stringify({
+                            "message": "notAuth"
+                        }))
+                    }
+                }
+                break
+            }
+            case "authConnection": {
+                const ws_user = this.connections.get(ws);
+                const token = message["data"]["token"];
+
+                const user = await authController.getUser(token)
+
+                if (ws_user != undefined) {
+                    if (user) {
+                        const username = user.username;
+                        this.connections.set(ws, {
+                            ...ws_user,user: {username}
+                        })
+                    }
+                }
+                break
             }
             case "sendMessage": {
                 this.sendMessage(message["uuid"],{"message":"hello"})
