@@ -14,6 +14,13 @@ interface JwtPayload {
     username: string
 }
 
+interface dbUser {
+    id: number;
+    username: string;
+    salt: string;
+    password: string;
+}
+
 const jwtMaxAge = Number(process.env.jwtMaxAge)
 
 class AuthController {
@@ -179,7 +186,7 @@ class AuthController {
                     where: {
                         username
                     }
-                })
+                });
 
                 return user
             }
@@ -253,8 +260,6 @@ class AuthController {
 
             const {newPassword,hashId} = req.body;
 
-            console.log(newPassword)
-
             if (!newPassword) return next(ApiError.badRequest("Invalid newPassword").response);
             if (!hashId) return next(ApiError.badRequest("Invalid hashId").response);
 
@@ -280,6 +285,44 @@ class AuthController {
             res.send(200)
         }  catch (e: any) {
             console.warn(e.toString())
+            res.sendStatus(500)
+        }
+    }
+
+    async changePassword(req:Request,res:Response,next:NextFunction) {
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+
+            const {oldPassword,newPassword} = req.body;
+            const token = req.cookies['token'];
+
+            if (!oldPassword) return next(ApiError.badRequest("Invalid oldPassword").response);
+            if (!newPassword) return next(ApiError.badRequest("Invalid newPassword").response);
+
+            const user = await this.getUser(token) as dbUser;
+
+            const user_salt = user.salt;
+            const hashPassword = bcrypt.hashSync(oldPassword, user_salt);
+
+            if(user.password != hashPassword) {
+                return next(ApiError.badRequest("Wrong oldPassword").response);
+            }
+
+            const new_salt = bcrypt.genSaltSync(saltRounds);
+            const hash_password = bcrypt.hashSync(newPassword, new_salt);
+
+            await prisma.user.update({
+                where: {
+                    id: user.id
+                },
+                data: {
+                    password: hash_password,
+                    salt: new_salt
+                }
+            })
+
+            res.sendStatus(200)
+        } catch (e: any) {
             res.sendStatus(500)
         }
     }

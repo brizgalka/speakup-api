@@ -5,7 +5,7 @@
       "experimentalDecorators": true,
       "target": "ESNext",
       "module": "CommonJS",
-      "rootDir": "./src",
+      "rootDir": "./",
       "baseUrl": ".",
       "outDir": "./dist",
       "moduleResolution": "node",

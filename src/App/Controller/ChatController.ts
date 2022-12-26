@@ -111,15 +111,38 @@ export default class ChatController {
             return false
         }
     }
+
+    async getDialogInfo(req:Request,res:Response,next:NextFunction) {
+        try {
+            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+
+            const {chatId} = req.body;
+            const token = req.cookies['token'];
+
+            console.log(chatId)
+
+            const user: dbUser = await authController.getUser(token) as dbUser;
+
+            const dialog = await ChatController.getDialog(chatId,user) as dbDialog
+
+            if(dialog) {
+                res.json(dialog)
+            } else {
+                res.send(404)
+            }
+        } catch (e: any) {
+            res.sendStatus(500)
+            console.warn(e.toString())
+        }
+    }
+
+
     async sendMessage(req:Request,res:Response,next:NextFunction) {
         try {
             if(req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
 
             const {message,chatId} = req.body;
             const token = req.cookies['token'];
-
-            console.log(message)
-            console.log(chatId)
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 

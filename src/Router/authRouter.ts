@@ -13,5 +13,6 @@ router.post("/checkToken",AuthMiddleware, authController.checkToken);
 router.post("/new-password", authController.newPassword);
 router.post("/validate-hashId", authController.validateHashId);
 router.post("/validate-verifyToken", authController.validateVerifyToken);
+router.post("/change-password",AuthMiddleware, authController.changePassword);
 
 export default router;

@@ -12,5 +12,6 @@ router.post("/createChat",chatController.createChat);
 router.get("/getUserData",userController.getUserData);
 router.post("/getMessages",chatController.getMessages);
 router.post("/getDialogs",chatController.getDialogs);
+router.post("/getDialogInfo",chatController.getDialogInfo);
 
-export default router
+export default router;
