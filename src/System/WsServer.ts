@@ -76,6 +76,8 @@ class WsServer implements WsServerInterface {
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0]
                 const ws_user = connection[1]
+                console.log("reconnected")
+                ws_user.user.username = null
                 if (ws_user.uuid == ws.protocol) {
                     this.connections.set(ws,ws_user)
                     found = true;

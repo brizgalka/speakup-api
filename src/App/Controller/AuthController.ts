@@ -223,7 +223,7 @@ class AuthController {
 
             await ApplicationContext.redis.set(hash_id,user.username)
             await ApplicationContext.tgBot.bot.sendMessage(user.telegram,`hello, your reset link
-                http://localhost:3000/auth/forgot-password/auth-new-password/${hash_id}
+                http://82.146.46.97:3000/auth/forgot-password/auth-new-password/${hash_id}
             `)
             res.send("Code sent to your telegram")
         } catch (e: any) {

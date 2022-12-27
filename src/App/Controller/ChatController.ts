@@ -119,7 +119,7 @@ export default class ChatController {
             const {chatId} = req.body;
             const token = req.cookies['token'];
 
-            console.log(chatId)
+            if(!chatId) { return next(ApiError.badRequest("Invalid chatId").response); }
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 
@@ -143,6 +143,10 @@ export default class ChatController {
 
             const {message,chatId} = req.body;
             const token = req.cookies['token'];
+
+            if(!message) { return next(ApiError.badRequest("Invalid message").response); }
+            if(!chatId) { return next(ApiError.badRequest("Invalid chatId").response); }
+
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 
@@ -192,6 +196,8 @@ export default class ChatController {
         try {
             const {chatId} = req.body;
             const token = req.cookies['token'];
+
+            if(!chatId) { return next(ApiError.badRequest("Invalid chatId").response); }
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 
