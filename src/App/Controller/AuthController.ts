@@ -368,6 +368,17 @@ class AuthController {
         }
 
     }
+
+    async logOut(req:Request,res:Response,next:NextFunction) {
+        console.log("MAKE LOGOUT")
+        try {
+            res.clearCookie("token")
+            res.sendStatus(200)
+        } catch (e: any) {
+            console.warn(e.toString())
+        }
+    }
+
     async checkToken(req:Request,res:Response,next:NextFunction) {
         try {
             if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);

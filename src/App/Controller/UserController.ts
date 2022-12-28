@@ -33,6 +33,8 @@ class UserController {
 
             const user = await authController.getUser(token) as sendUserData;
 
+            if(!user) return next(res.sendStatus(401))
+
             res.json({
                 "id": user.id,
                 "username": user.username,

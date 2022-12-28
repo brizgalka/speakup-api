@@ -147,10 +147,11 @@ export default class ChatController {
             if(!message) { return next(ApiError.badRequest("Invalid message").response); }
             if(!chatId) { return next(ApiError.badRequest("Invalid chatId").response); }
 
+            if(message.length > 750) { return next(ApiError.forbidden("Message to long").response); }
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 
-            const dialog = await ChatController.getDialog(chatId,user) as dbDialog
+            const dialog = await ChatController.getDialog(chatId,user) as dbDialog;
 
             const secretMessage = encrypt(message,dialog.secret)
 

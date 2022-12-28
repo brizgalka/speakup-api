@@ -6,6 +6,7 @@ import {NextFunction, Request, Response} from "express";
 
 const authController = new AuthController();
 
+router.post("/logout",authController.logOut);
 router.post("/login",authController.login);
 router.post("/forgot-password",authController.forgotPassword);
 router.post("/register",authController.registration);
