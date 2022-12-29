@@ -219,7 +219,7 @@ class AuthController {
             const uuid1 = uuidv4()
             const hash = bcrypt.hashSync(user_uuid, salt);
             const uuid2 = uuidv4()
-            const hash_id = uuid1 + hash + uuid2
+            const hash_id = (uuid1 + hash + uuid2).replace("/",".")
 
             await ApplicationContext.redis.set(hash_id,user.username)
             await ApplicationContext.tgBot.bot.sendMessage(user.telegram,`hello, your reset link
@@ -240,8 +240,6 @@ class AuthController {
             if (!hashId) return next(ApiError.badRequest("Invalid hashId").response);
 
             const result = await ApplicationContext.redis.get(hashId)
-
-            console.log(result)
 
             if(result) {
                 res.sendStatus(200)
@@ -299,7 +297,7 @@ class AuthController {
             if (!oldPassword) return next(ApiError.badRequest("Invalid oldPassword").response);
             if (!newPassword) return next(ApiError.badRequest("Invalid newPassword").response);
 
-            const user = await this.getUser(token) as dbUser;
+            const user = await new AuthController().getUser(token) as dbUser;
 
             const user_salt = user.salt;
             const hashPassword = bcrypt.hashSync(oldPassword, user_salt);
@@ -370,10 +368,24 @@ class AuthController {
     }
 
     async logOut(req:Request,res:Response,next:NextFunction) {
-        console.log("MAKE LOGOUT")
+        const token = req.cookies['token'];
+
+        if(token == undefined) { return next(ApiError.badRequest("Invalid token")) }
+
+        res.clearCookie("token")
+        res.sendStatus(200)
+
         try {
-            res.clearCookie("token")
-            res.sendStatus(200)
+            const user = await new AuthController().getUser(token) as dbUser;
+            if(user) {
+                for (const connection of ApplicationContext.wss.connections.entries()) {
+                    const ws_connection = connection[0]
+                    const ws_user = connection[1]
+                    if(ws_user.user.username == user.username) {
+                        ws_user.user.username = null
+                    }
+                }
+            }
         } catch (e: any) {
             console.warn(e.toString())
         }
