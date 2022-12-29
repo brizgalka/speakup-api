@@ -7,6 +7,7 @@ import AuthMiddleware from "@/App/middleware/AuthMiddleware";
 import infoRouter from "@/Router/infoRouter";
 import utilRouter from "@/Router/utilRouter";
 import staticRouter from "@/Router/staticRouter";
+import userApiRouter from "@/Router/userApiRouter";
 
 const router = Router()
 
@@ -32,6 +33,7 @@ router.use('/user',AuthMiddleware,userRouter);
 router.use('/auth',authRouter);
 router.use('/info',infoRouter);
 router.use('/util',utilRouter);
+router.use('/userApi',userApiRouter);
 router.use('/static',staticRouter);
 
 export default router;

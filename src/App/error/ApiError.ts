@@ -1,24 +1,18 @@
+import {Response} from "express";
+
 class ApiError  {
 
     status: number;
-    response: string;
+    response?: string | object;
 
-    constructor(status: number, response: string) {
+    constructor(res: Response | undefined, status: number, response?: string | object) {
         this.status = status
         this.response = response
+        if(res != undefined) {
+            res.status(status).send(response)
+        }
     }
 
-    static badRequest(message: string) {
-        return new ApiError(404, message)
-    }
-
-    static internal(message: string) {
-        return new ApiError(500, message)
-    }
-
-    static forbidden(message: string) {
-        return new ApiError(403, message)
-    }
 }
 
 export default ApiError

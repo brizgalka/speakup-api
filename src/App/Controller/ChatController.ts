@@ -34,7 +34,7 @@ export default class ChatController {
 
     async createChat(req:Request,res:Response,next:NextFunction) {
         try {
-            if(req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+            if(req.body == undefined) return new ApiError(res,400,"Invalid body");
 
             const {username} = req.body;
             const token = req.cookies['token'];
@@ -68,15 +68,15 @@ export default class ChatController {
             console.log(chat_condidate)
 
             if(chat_condidate) {
-                return next(ApiError.badRequest("Chat already exist").response);
+                return new ApiError(res,400,"Chat already exist");
             }
 
             if(!user) {
-                return next(ApiError.badRequest("Server error").response);
+                return new ApiError(res,500,"Server error");
             }
 
             if(!new_user) {
-                return next(ApiError.badRequest("User not found").response);
+                return new ApiError(res,400,"User not found");
             }
 
             const chat = await prisma.dialog.create({
@@ -114,12 +114,12 @@ export default class ChatController {
 
     async getDialogInfo(req:Request,res:Response,next:NextFunction) {
         try {
-            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+            if (req.body == undefined) return new ApiError(res,400,"Invalid body");
 
             const {chatId} = req.body;
             const token = req.cookies['token'];
 
-            if(!chatId) { return next(ApiError.badRequest("Invalid chatId").response); }
+            if(!chatId) { return new ApiError(res,400,"Invalid chatId"); }
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 
@@ -139,15 +139,15 @@ export default class ChatController {
 
     async sendMessage(req:Request,res:Response,next:NextFunction) {
         try {
-            if(req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+            if(req.body == undefined) return new ApiError(res,400,"Invalid body");
 
             const {message,chatId} = req.body;
             const token = req.cookies['token'];
 
-            if(!message) { return next(ApiError.badRequest("Invalid message").response); }
-            if(!chatId) { return next(ApiError.badRequest("Invalid chatId").response); }
+            if(!message) { return new ApiError(res,400,"Invalid message"); }
+            if(!chatId) { return new ApiError(res,400,"Invalid chatId") }
 
-            if(message.length > 750) { return next(ApiError.forbidden("Message to long").response); }
+            if(message.length > 750) { return new ApiError(res,400,"Message to long") }
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 
@@ -198,7 +198,7 @@ export default class ChatController {
             const {chatId} = req.body;
             const token = req.cookies['token'];
 
-            if(!chatId) { return next(ApiError.badRequest("Invalid chatId").response); }
+            if(!chatId) { return new ApiError(res,400,"Invalid chatId") }
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 

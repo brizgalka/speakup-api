@@ -28,7 +28,7 @@ class UserController {
 
     async getUserData(req:Request,res:Response,next:NextFunction) {
         try {
-            if (req.body == undefined) return next(ApiError.badRequest("Invalid body").response);
+            if (req.body == undefined) return new ApiError(res,400,"Invalid body");
             const token = req.cookies['token'];
 
             const user = await authController.getUser(token) as sendUserData;
