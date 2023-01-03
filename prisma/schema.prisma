@@ -26,6 +26,13 @@ model User {
   Message  Message[]
 }
 
+model Visit {
+  id Int @id @default(autoincrement())
+  visitAt DateTime @default(now())
+
+  ip String
+}
+
 model VerifyToken {
   id Int @id @default(autoincrement())
 

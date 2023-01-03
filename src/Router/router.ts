@@ -1,23 +1,24 @@
 import Router, {NextFunction, Request, Response} from 'express'
 import userRouter from "@/Router/userRouter";
 import authRouter from "@/Router/authRouter";
-import verifyUser from "@/App/middleware/VerifyUser";
 import path from "path"
 import AuthMiddleware from "@/App/middleware/AuthMiddleware";
 import infoRouter from "@/Router/infoRouter";
 import utilRouter from "@/Router/utilRouter";
 import staticRouter from "@/Router/staticRouter";
 import userApiRouter from "@/Router/userApiRouter";
+import useragent  from 'express-useragent'
+import verifyUser from "@/App/middleware/VerifyUser";
 
-const router = Router()
+const router = Router();
 
 const apiInfoPath = path.join(__dirname,"/api.info")
+
+//router.use(verifyUser);
 
 router.get("/",(req:Request,res:Response) => {
     res.sendFile(apiInfoPath)
 })
-
-//router.use(verifyUser);
 
 router.use((error: any , req: Request, res: Response, next: NextFunction) => {
     console.log(error)

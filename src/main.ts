@@ -15,6 +15,8 @@ import {WsServer} from "@/System/WsServer";
 import router from "@/Router/router";
 import {ApplicationContext} from "@/System/Context";
 import {TgBot} from "@/System/TgBot";
+import telegramView from "@/App/View/telegramView";
+import AuthController from "@/App/Controller/AuthController";
 
 const SERVER_PORT = Number(process.env.SERVER_PORT);
 const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
@@ -55,6 +57,8 @@ async function startup() {
         urlConnection: REDIS_URL
     })
 
+    telegramView.sendHelloText(1);
+
     AppContext = new ApplicationContext({
         redis: redisServer,
         server,
@@ -70,9 +74,9 @@ async function startup() {
 
 startup().then(r => {
     if(AppContext == undefined) {
-        console.log('AppContext not found')
+        console.log('AppContext not found');
     } else {
-        console.log("Application:API has been started")
+        console.log("Application:API has been started");
     }
 })
 

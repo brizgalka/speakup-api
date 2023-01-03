@@ -7,4 +7,4 @@ class InfoController {
 
 }
 
-export default InfoController
+export default InfoController;

@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import cors from "cors"
 import {PrismaClient} from "@prisma/client"
 import cookieParser from "cookie-parser"
+import fileUpload from "express-fileupload"
 
 interface ServerInterface {
     port: number,
@@ -36,6 +37,10 @@ class Server implements ServerInterface {
         this.router = options.router
         this.prisma = options.prisma
         this.cookieSecret = options.cookieSecret
+
+        this.app.use(fileUpload({
+            limits: { fileSize: 50 * 1024 * 1024 },
+        }));
 
         this.app.use(cors(
             {

@@ -21,6 +21,7 @@ interface dbUser {
 
 interface dbDialog {
     id: number,
+    user1: any;
     user1Id: number,
     user2Id: number,
     user1Name: string,
@@ -39,19 +40,13 @@ export default class ChatController {
             const {username} = req.body;
             const token = req.cookies['token'];
 
-            console.log('creating chat')
-
             const user = await authController.getUser(token) as dbUser;
-
-            console.log(user)
 
             const new_user: dbUser = await prisma.user.findFirst({
                 where: {
                     username
                 }
             }) as dbUser
-
-            console.log(new_user);
 
             const chat_condidate = await prisma.dialog.findFirst({
                 where: {
@@ -64,8 +59,6 @@ export default class ChatController {
                     user1Id: user.id
                 }
             })
-
-            console.log(chat_condidate)
 
             if(chat_condidate) {
                 return new ApiError(res,400,"Chat already exist");
@@ -83,8 +76,16 @@ export default class ChatController {
                 data: {
                     createdAt: new Date(),
                     secret: genSecret(16),
-                    user1Id: user.id,
-                    user2Id: new_user.id,
+                    user1: {
+                        connect: {
+                            id: user.id
+                        }
+                    },
+                    user2: {
+                        connect: {
+                            id: new_user.id
+                        }
+                    },
                     user1Name: user.username,
                     user2Name: new_user.username,
                     DialogName: user.username + " and " + new_user.username
@@ -97,17 +98,22 @@ export default class ChatController {
             res.sendStatus(500)
         }
     }
+
+
     static async getDialog(chatId: number,user: dbUser): Promise<returnDbDialog> {
+        try {
+            const dialog = await prisma.dialog.findFirst({
+                where: {
+                    id: Number(chatId)
+                }
+            }) as any
 
-        const dialog = await prisma.dialog.findFirst({
-            where: {
-                id: Number(chatId)
+            if(dialog.user1Id == user.id || dialog.user2Id == user.id) {
+                return dialog as dbDialog
+            } else {
+                return false
             }
-        }) as dbDialog
-
-        if(dialog.user1Id == user.id || dialog.user2Id == user.id) {
-            return dialog as dbDialog
-        } else {
+        } catch (e: any) {
             return false
         }
     }
@@ -147,7 +153,7 @@ export default class ChatController {
             if(!message) { return new ApiError(res,400,"Invalid message"); }
             if(!chatId) { return new ApiError(res,400,"Invalid chatId") }
 
-            if(message.length > 750) { return new ApiError(res,400,"Message to long") }
+            if(message.length > 850) { return new ApiError(res,400,"Message to long") }
 
             const user: dbUser = await authController.getUser(token) as dbUser;
 
@@ -167,7 +173,7 @@ export default class ChatController {
                     }
                 })
                 let reciever = ""
-                if(dialog.user1Id == user.id) {
+                if(dialog.user1 == user) {
                     reciever = dialog.user2Name
                 } else {
                     reciever = dialog.user1Name
@@ -237,13 +243,13 @@ export default class ChatController {
 
             const dialogs1 = await prisma.dialog.findMany({
                 where: {
-                    user1Id: user.id
+                    user1: user
                 }
             })
 
             const dialogs2 = await prisma.dialog.findMany({
                 where: {
-                    user2Id: user.id
+                    user2: user
                 }
             })
 

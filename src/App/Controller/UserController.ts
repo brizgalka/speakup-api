@@ -3,6 +3,8 @@ import ApiError from "@/App/error/ApiError";
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client'
 import AuthController from "@/App/Controller/AuthController";
+import path from "path"
+import fileUpload from "express-fileupload";
 
 const prisma = new PrismaClient()
 
@@ -51,6 +53,22 @@ class UserController {
 
     async changeProfile(req:Request,res:Response,next:NextFunction) {
 
+    }
+
+    async changePhoto(req: Request,res:Response,next:NextFunction){
+        try {
+            if (!req.files) {
+                return res.status(400).send("No files were uploaded.");
+            }
+
+            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+            //const file = req.files.file;
+            //const format = file.name.split('.').pop()
+            //file.mv(path.join(__dirname,`/../${process.env.MUSIC_STATIC}/`,name  + `.${format}`))
+            console.log(ip)
+        } catch (e: any) {
+            console.warn(e.toString())
+        }
     }
 }
 

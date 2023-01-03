@@ -12,4 +12,4 @@ class UtilController {
 
 }
 
-export default UtilController
+export default UtilController;

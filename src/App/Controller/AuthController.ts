@@ -8,7 +8,7 @@ import bcrypt, {hash} from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 import AuthModel from "@/App/model/AuthModel";
 import userApiRouter from "@/Router/userApiRouter";
-import modelResponse from "@/App/View/modelResponse";
+import modelResponse from "@/App/model/modelResponse";
 
 const saltRounds = Number(process.env.saltRounds)
 const token_secret = String(process.env.JWT_SECRET)
@@ -67,7 +67,7 @@ class AuthController {
         }
     }
 
-    async verifyAccount(token: string,telegram: string) {
+    async verifyAccount(token: string, telegram: string) {
         try {
             const user_candidate = await prisma.user.findUnique({
                 where: {
@@ -244,30 +244,11 @@ class AuthController {
 
             if (!oldPassword) return next(new ApiError(res,400,("Invalid oldPassword")));
             if (!newPassword) return next(new ApiError(res,400,("Invalid newPassword")));
+            if (!token) return next(new ApiError(res,400,("Invalid token")));
 
-            const user = await new AuthController().getUser(token) as dbUser;
+            const result = await authModel.changePassword(token,oldPassword,newPassword)
 
-            const user_salt = user.salt;
-            const hashPassword = bcrypt.hashSync(oldPassword, user_salt);
-
-            if(user.password != hashPassword) {
-                return next(new ApiError(res,400,("Wrong oldPassword")));
-            }
-
-            const new_salt = bcrypt.genSaltSync(saltRounds);
-            const hash_password = bcrypt.hashSync(newPassword, new_salt);
-
-            await prisma.user.update({
-                where: {
-                    id: user.id
-                },
-                data: {
-                    password: hash_password,
-                    salt: new_salt
-                }
-            })
-
-            res.sendStatus(200)
+            modelResponse.responseRequest(res,result)
         } catch (e: any) {
             res.sendStatus(500)
         }
@@ -282,60 +263,26 @@ class AuthController {
             if (!username) return next(new ApiError(res,400,("Invalid username")));
             if (!password) return next(new ApiError(res,400,("Invalid password")));
 
-            const user = await prisma.user.findFirst({
-                where: {
-                    username
-                }
-            })
+            const result = await authModel.login(username,password)
 
-            if(user == null) {
-                return next(new ApiError(res,400,("Wrong username or password")));
-            }
-
-            const salt = user.salt;
-            const hashPassword = bcrypt.hashSync(password, salt);
-
-            if(user.password != hashPassword) {
-                return next(new ApiError(res,400,("Wrong username or password")));
-            }
-
-            const token = jwt.sign({username}, token_secret, { expiresIn: '1800s' })
-
-            res.cookie("token",token,{
-                maxAge: jwtMaxAge,
-                httpOnly: true
-            })
-            res.json({
-                token
-            })
+            modelResponse.responseRequest(res,result)
         } catch (e: any) {
             console.warn(e.toString())
             res.sendStatus(500)
         }
-
     }
 
     async logOut(req:Request,res:Response,next:NextFunction) {
-        const token = req.cookies['token'];
-
-        if(token == undefined) { return next(new ApiError(res,400,("Invalid token"))) }
-
-        res.clearCookie("token")
-        res.sendStatus(200)
-
         try {
-            const user = await new AuthController().getUser(token) as dbUser;
-            if(user) {
-                for (const connection of ApplicationContext.wss.connections.entries()) {
-                    const ws_connection = connection[0]
-                    const ws_user = connection[1]
-                    if(ws_user.user.username == user.username) {
-                        ws_user.user.username = null
-                    }
-                }
-            }
+            const token = req.cookies['token'];
+
+            if(token == undefined) { return next(new ApiError(res,400,("Invalid token"))) }
+
+            const result = await authModel.logOut(token)
+
+            modelResponse.responseRequest(res,result)
         } catch (e: any) {
-            console.warn(e.toString())
+            console.warn(e.toString());
         }
     }
 

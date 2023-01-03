@@ -8,7 +8,7 @@ class userAgree {
     getUserAgree(): string|undefined {
         try {
             const data = fs.readFileSync(file_path, 'utf8');
-            return data
+            return data;
         } catch (err) {
             console.error(err);
         }

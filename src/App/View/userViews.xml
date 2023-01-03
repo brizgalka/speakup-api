@@ -1,0 +1,20 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<RootViews>
+    <TelegramView>
+        <HelloText>
+            Привет это speak-up
+        </HelloText>
+        <AccountSuccesRegister>
+            Аккаунт успешно подтверждён
+        </AccountSuccesRegister>
+        <TokenNotFound>
+            Токен не найден
+        </TokenNotFound>
+        <RestoreLink>
+            hello, your reset link
+            http://82.146.46.97:3000/auth/forgot-password/auth-new-password/$auth_hash$
+        </RestoreLink>
+    </TelegramView>
+    <MailView>
+    </MailView>
+</RootViews>
