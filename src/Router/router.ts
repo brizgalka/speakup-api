@@ -7,21 +7,23 @@ import infoRouter from "@/Router/infoRouter";
 import utilRouter from "@/Router/utilRouter";
 import staticRouter from "@/Router/staticRouter";
 import userApiRouter from "@/Router/userApiRouter";
-import useragent  from 'express-useragent'
 import verifyUser from "@/App/middleware/VerifyUser";
+import metrikaMiddleware from "@/System/Metrika/UserMetrika";
 
 const router = Router();
 
 const apiInfoPath = path.join(__dirname,"/api.info")
 
-//router.use(verifyUser);
-
 router.get("/",(req:Request,res:Response) => {
     res.sendFile(apiInfoPath)
 })
 
+router.use(async (req, res, next) => {
+    // @ts-ignore
+    await metrikaMiddleware(req,next)
+})
+
 router.use((error: any , req: Request, res: Response, next: NextFunction) => {
-    console.log(error)
     if(error) {
         res.status(500)
         res.send("Server error")
@@ -30,10 +32,10 @@ router.use((error: any , req: Request, res: Response, next: NextFunction) => {
     }
 })
 
-router.use('/user',AuthMiddleware,userRouter);
-router.use('/auth',authRouter);
-router.use('/info',infoRouter);
-router.use('/util',utilRouter);
+router.use('/user',[AuthMiddleware,verifyUser],userRouter);
+router.use('/auth',verifyUser,authRouter);
+router.use('/info',verifyUser,infoRouter);
+router.use('/util',verifyUser,utilRouter);
 router.use('/userApi',userApiRouter);
 router.use('/static',staticRouter);
 

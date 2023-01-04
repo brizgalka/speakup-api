@@ -183,7 +183,11 @@ export default class ChatController {
                     const ws_user = connection[1]
                     if(ws_user.user.username == reciever) {
                         ApplicationContext.wss.sendMessage(ws_user.uuid,{
-                            "message": "new message"
+                            "message": "new message",
+                            "data": {
+                                chatId,
+                                message
+                            }
                         })
                     }
                 }

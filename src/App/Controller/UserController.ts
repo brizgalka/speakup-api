@@ -1,16 +1,16 @@
 import {Request, Response, NextFunction} from "express";
 import ApiError from "@/App/error/ApiError";
-import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client'
 import AuthController from "@/App/Controller/AuthController";
-import path from "path"
-import fileUpload from "express-fileupload";
+import modelResponse from "@/App/model/modelResponse";
+import UserModel from "@/App/model/UserModel";
 
 const prisma = new PrismaClient()
 
 const saltRounds = Number(process.env.saltRounds);
 
 const authController = new AuthController();
+const userModel = new UserModel();
 
 interface sendUserData {
     username: string,
@@ -57,15 +57,22 @@ class UserController {
 
     async changePhoto(req: Request,res:Response,next:NextFunction){
         try {
-            if (!req.files) {
-                return res.status(400).send("No files were uploaded.");
+            if (req.body == undefined) return new ApiError(res,400,"Invalid body");
+            if (!req.files) return new ApiError(res,400,"Invalid UUID");
+
+            let file = req.files.file;
+
+            if (!file) return new ApiError(res,400,"Invalid File");
+
+            const token = req.cookies['token'];
+
+            if(Array.isArray(file)) {
+                file = file[0]
             }
 
-            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-            //const file = req.files.file;
-            //const format = file.name.split('.').pop()
-            //file.mv(path.join(__dirname,`/../${process.env.MUSIC_STATIC}/`,name  + `.${format}`))
-            console.log(ip)
+            const result = await userModel.changePhoto(token,file)
+
+            modelResponse.responseRequest(res,result);
         } catch (e: any) {
             console.warn(e.toString())
         }

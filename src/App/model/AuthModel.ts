@@ -5,8 +5,6 @@ import {v4 as uuidv4} from "uuid";
 import bcrypt from "bcrypt";
 import {ApplicationContext} from "@/System/Context";
 import modelResponse from "@/App/model/modelResponse";
-import {NextFunction, Request, Response} from "express";
-import ModelResponse from "@/App/model/modelResponse";
 const prisma = new PrismaClient()
 
 const saltRounds = Number(process.env.saltRounds)
@@ -128,7 +126,7 @@ class AuthModel {
                 }
             })
 
-            if(user == null) {
+            if(!user) {
                 return new ApiError(undefined,400,"Wrong username or password");
             }
 
@@ -165,6 +163,8 @@ class AuthModel {
         try {
             const user = await AuthModel.getUser(token) as dbUser;
 
+            if(!user) return new ApiError(undefined,400,("Invalid User"));
+
             if(user) {
                 for (const connection of ApplicationContext.wss.connections.entries()) {
                     const ws_connection = connection[0]
@@ -188,6 +188,8 @@ class AuthModel {
     async changePassword(token: string, oldPassword: string, newPassword: string): Promise<modelResponse | ApiError>  {
         try {
             const user = await AuthModel.getUser(token) as dbUser;
+
+            if(!user) return new ApiError(undefined,400,("Invalid User"));
 
             const user_salt = user.salt;
             const hashPassword = bcrypt.hashSync(oldPassword, user_salt);

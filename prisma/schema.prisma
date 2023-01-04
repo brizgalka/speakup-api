@@ -7,6 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+    ADMIN
+    USER
+    TECHSUPPORT
+}
+
+enum Award {
+    HALF_YEAR_ON_SITE
+    ONE_YEAR_ON_SITE
+    TWO_YEARS_ON_SITE
+    THREE_YEARS_ON_SITE
+    FOUR_YEARS_ON_SITE
+    FIVE_YEARS_ON_SITE
+    MESSANGER //Отправить 10к сообщений
+    RECIEVER //Получить 10к сообщений
+    PUBLIC1 //10 чатов
+    PUBLIC2 //25 чатов
+    PUBLIC3 //50 чатов
+    PUBLIC4 //100 Чатов
+    PUBLIC5 //250 Чатов
+}
+
 model User {
   id Int @id @default(autoincrement())
 
@@ -21,6 +43,8 @@ model User {
   telegram String    @unique
   salt     String
   Chats    Chat[]
+  awards   Award[]
+  role     Role      @default(USER)
   User1    Dialog[]  @relation("user1_chat")
   User2    Dialog[]  @relation("user2_chat")
   Message  Message[]
@@ -29,6 +53,7 @@ model User {
 model Visit {
   id Int @id @default(autoincrement())
   visitAt DateTime @default(now())
+  method  String   @default("request")
 
   ip String
 }
