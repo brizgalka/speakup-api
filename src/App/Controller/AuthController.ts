@@ -4,10 +4,9 @@ import {NextFunction, Request, Response} from "express";
 import ApiError from "@/App/error/ApiError";
 import jwt from "jsonwebtoken"
 import {ApplicationContext} from "@/System/Context";
-import bcrypt, {hash} from "bcrypt";
+import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 import AuthModel from "@/App/model/AuthModel";
-import userApiRouter from "@/Router/userApiRouter";
 import modelResponse from "@/App/model/modelResponse";
 
 const saltRounds = Number(process.env.saltRounds)

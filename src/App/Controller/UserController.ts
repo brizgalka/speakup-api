@@ -77,6 +77,25 @@ class UserController {
             console.warn(e.toString())
         }
     }
+
+    async changeBio(req: Request,res: Response,next: NextFunction) {
+        try {
+            if (req.body == undefined) return new ApiError(res,400,"Invalid body");
+
+            const token = req.cookies['token'];
+            const { bio } = req.body;
+
+            if (!bio) return new ApiError(res,400,"Invalid Bio");
+            if (!token) return new ApiError(res,401,"Invalid Token");
+
+            const result = await userModel.changeBio(token, bio)
+
+            modelResponse.responseRequest(res,result);
+
+        } catch (e: any) {
+            console.warn(e.toString())
+        }
+    }
 }
 
 export default UserController

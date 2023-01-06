@@ -16,7 +16,6 @@ import router from "@/Router/router";
 import {ApplicationContext} from "@/System/Context";
 import {TgBot} from "@/System/TgBot";
 import telegramView from "@/App/View/telegramView";
-import AuthController from "@/App/Controller/AuthController";
 
 const SERVER_PORT = Number(process.env.SERVER_PORT);
 const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);

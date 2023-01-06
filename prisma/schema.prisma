@@ -41,9 +41,9 @@ model User {
   email    String
   photo    String    @default("user")
   telegram String    @unique
+  bio      String    @default("Hello, I'm using Speak Up!")
   salt     String
   Chats    Chat[]
-  awards   Award[]
   role     Role      @default(USER)
   User1    Dialog[]  @relation("user1_chat")
   User2    Dialog[]  @relation("user2_chat")

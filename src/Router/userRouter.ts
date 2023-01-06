@@ -13,5 +13,6 @@ router.post("/getMessages",chatController.getMessages);
 router.post("/getDialogs",chatController.getDialogs);
 router.post("/getDialogInfo",chatController.getDialogInfo);
 router.post("/changePhoto",userController.changePhoto);
+router.post("/changeBio",userController.changeBio);
 
 export default router;

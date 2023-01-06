@@ -57,6 +57,27 @@ class UserModel {
         }
     }
 
+    async changeBio(token: string, bio: string): Promise<modelResponse | ApiError> {
+        try {
+            const user = await AuthModel.getUser(token) as dbUser;
+            if (!user) return new ApiError(undefined, 400)
+    
+            await prisma.user.update({
+                where: {
+                    id: user.id
+                }, 
+                data: {
+                    bio
+                }
+            })
+
+            return new modelResponse(200);
+        } catch (e: any) {
+            console.warn(e.toString())
+            return new ApiError(undefined,500);
+        }
+    }
+
 }
 
 export default UserModel

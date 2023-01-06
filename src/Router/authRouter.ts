@@ -2,7 +2,6 @@ import AuthController from "@/App/Controller/AuthController";
 import express from "express"
 const router = express.Router()
 import AuthMiddleware from "@/App/middleware/AuthMiddleware";
-import {NextFunction, Request, Response} from "express";
 
 const authController = new AuthController();
 
@@ -15,5 +14,9 @@ router.post("/new-password", authController.newPassword);
 router.post("/validate-hashId", authController.validateHashId);
 router.post("/validate-verifyToken", authController.validateVerifyToken);
 router.post("/change-password",AuthMiddleware, authController.changePassword);
+router.post("/verify-user", (req, res) => {
+    authController.verifyAccount(req.body.token, Math.random().toString())
+    res.status(200).send("ok")
+})
 
 export default router;

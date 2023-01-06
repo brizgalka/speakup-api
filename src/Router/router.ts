@@ -32,10 +32,10 @@ router.use((error: any , req: Request, res: Response, next: NextFunction) => {
     }
 })
 
-router.use('/user',[AuthMiddleware,verifyUser],userRouter);
-router.use('/auth',verifyUser,authRouter);
-router.use('/info',verifyUser,infoRouter);
-router.use('/util',verifyUser,utilRouter);
+router.use('/user',[AuthMiddleware],userRouter);
+router.use('/auth',authRouter);
+router.use('/info',infoRouter);
+router.use('/util',utilRouter);
 router.use('/userApi',userApiRouter);
 router.use('/static',staticRouter);
 
