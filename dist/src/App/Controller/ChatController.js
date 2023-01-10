@@ -14,18 +14,15 @@ class ChatController {
     async createChat(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return new ApiError_1.default(res, 400, "Invalid body");
             const { username } = req.body;
             const token = req.cookies['token'];
-            console.log('creating chat');
             const user = await authController.getUser(token);
-            console.log(user);
             const new_user = await prisma.user.findFirst({
                 where: {
                     username
                 }
             });
-            console.log(new_user);
             const chat_condidate = await prisma.dialog.findFirst({
                 where: {
                     user1Id: new_user.id,
@@ -37,22 +34,29 @@ class ChatController {
                     user1Id: user.id
                 }
             });
-            console.log(chat_condidate);
             if (chat_condidate) {
-                return next(ApiError_1.default.badRequest("Chat already exist").response);
+                return new ApiError_1.default(res, 400, "Chat already exist");
             }
             if (!user) {
-                return next(ApiError_1.default.badRequest("Server error").response);
+                return new ApiError_1.default(res, 500, "Server error");
             }
             if (!new_user) {
-                return next(ApiError_1.default.badRequest("User not found").response);
+                return new ApiError_1.default(res, 400, "User not found");
             }
             const chat = await prisma.dialog.create({
                 data: {
                     createdAt: new Date(),
                     secret: (0, CRYPTO_Manager_1.genSecret)(16),
-                    user1Id: user.id,
-                    user2Id: new_user.id,
+                    user1: {
+                        connect: {
+                            id: user.id
+                        }
+                    },
+                    user2: {
+                        connect: {
+                            id: new_user.id
+                        }
+                    },
                     user1Name: user.username,
                     user2Name: new_user.username,
                     DialogName: user.username + " and " + new_user.username
@@ -66,26 +70,61 @@ class ChatController {
         }
     }
     static async getDialog(chatId, user) {
-        const dialog = await prisma.dialog.findFirst({
-            where: {
-                id: Number(chatId)
+        try {
+            const dialog = await prisma.dialog.findFirst({
+                where: {
+                    id: Number(chatId)
+                }
+            });
+            if (dialog.user1Id == user.id || dialog.user2Id == user.id) {
+                return dialog;
             }
-        });
-        if (dialog.user1Id == user.id || dialog.user2Id == user.id) {
-            return dialog;
+            else {
+                return false;
+            }
         }
-        else {
+        catch (e) {
             return false;
+        }
+    }
+    async getDialogInfo(req, res, next) {
+        try {
+            if (req.body == undefined)
+                return new ApiError_1.default(res, 400, "Invalid body");
+            const { chatId } = req.body;
+            const token = req.cookies['token'];
+            if (!chatId) {
+                return new ApiError_1.default(res, 400, "Invalid chatId");
+            }
+            const user = await authController.getUser(token);
+            const dialog = await ChatController.getDialog(chatId, user);
+            if (dialog) {
+                res.json(dialog);
+            }
+            else {
+                res.send(404);
+            }
+        }
+        catch (e) {
+            res.sendStatus(500);
+            console.warn(e.toString());
         }
     }
     async sendMessage(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return new ApiError_1.default(res, 400, "Invalid body");
             const { message, chatId } = req.body;
             const token = req.cookies['token'];
-            console.log(message);
-            console.log(chatId);
+            if (!message) {
+                return new ApiError_1.default(res, 400, "Invalid message");
+            }
+            if (!chatId) {
+                return new ApiError_1.default(res, 400, "Invalid chatId");
+            }
+            if (message.length > 850) {
+                return new ApiError_1.default(res, 400, "Message to long");
+            }
             const user = await authController.getUser(token);
             const dialog = await ChatController.getDialog(chatId, user);
             const secretMessage = (0, CRYPTO_Manager_1.encrypt)(message, dialog.secret);
@@ -100,7 +139,7 @@ class ChatController {
                     }
                 });
                 let reciever = "";
-                if (dialog.user1Id == user.id) {
+                if (dialog.user1 == user) {
                     reciever = dialog.user2Name;
                 }
                 else {
@@ -111,9 +150,14 @@ class ChatController {
                     const ws_user = connection[1];
                     if (ws_user.user.username == reciever) {
                         Context_1.ApplicationContext.wss.sendMessage(ws_user.uuid, {
-                            "message": "new message"
+                            "message": "new message",
+                            "data": {
+                                chatId,
+                                message
+                            }
                         });
                     }
+                    return 1;
                 }
                 res.send(200);
             }
@@ -132,6 +176,9 @@ class ChatController {
         try {
             const { chatId } = req.body;
             const token = req.cookies['token'];
+            if (!chatId) {
+                return new ApiError_1.default(res, 400, "Invalid chatId");
+            }
             const user = await authController.getUser(token);
             const dialog = await ChatController.getDialog(chatId, user);
             if (dialog) {
@@ -164,12 +211,12 @@ class ChatController {
             const user = await authController.getUser(token);
             const dialogs1 = await prisma.dialog.findMany({
                 where: {
-                    user1Id: user.id
+                    user1: user
                 }
             });
             const dialogs2 = await prisma.dialog.findMany({
                 where: {
-                    user2Id: user.id
+                    user2: user
                 }
             });
             res.json({

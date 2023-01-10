@@ -10,78 +10,31 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const Context_1 = require("@/System/Context");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const uuid_1 = require("uuid");
+const AuthModel_1 = __importDefault(require("@/App/model/AuthModel"));
+const modelResponse_1 = __importDefault(require("@/App/model/modelResponse"));
 const saltRounds = Number(process.env.saltRounds);
 const token_secret = String(process.env.JWT_SECRET);
+const authModel = new AuthModel_1.default();
 const jwtMaxAge = Number(process.env.jwtMaxAge);
 class AuthController {
     async registration(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return next(new ApiError_1.default(res, 400, "Invalid Body"));
             const { username, password, email } = req.body;
             const user_uuid = req.body.uuid;
             if (!user_uuid)
-                return next(ApiError_1.default.badRequest("Invalid UUID").response);
+                return new ApiError_1.default(res, 400, "Invalid UUID");
             if (!username)
-                return next(ApiError_1.default.badRequest("Invalid username").response);
+                return new ApiError_1.default(res, 400, "Invalid username");
             if (!password)
-                return next(ApiError_1.default.badRequest("Invalid password").response);
+                return new ApiError_1.default(res, 400, "Invalid password");
             if (!email)
-                return next(ApiError_1.default.badRequest("Invalid email").response);
-            const candidate = await prisma.user.findFirst({
-                where: {
-                    username
-                },
-            }) || await prisma.user.findFirst({
-                where: {
-                    email
-                },
-            });
-            if (candidate != undefined) {
-                return next(ApiError_1.default.badRequest("This email or username already taken").response);
-            }
-            const token_candidate = await prisma.verifyToken.findFirst({
-                where: {
-                    username
-                },
-            }) || await prisma.verifyToken.findFirst({
-                where: {
-                    email
-                },
-            });
-            if (token_candidate != null) {
-                const token_createdAt = token_candidate.createdAt;
-                const difference = Date.now() - token_createdAt.getDate();
-                console.log(token_candidate.createdAt);
-                if (parseInt(String(difference / 1000)) > 300) {
-                    await prisma.verifyToken.delete({
-                        where: {
-                            id: token_candidate?.id
-                        }
-                    });
-                    return next(ApiError_1.default.badRequest("Token invalid. Try again").response);
-                }
-                else {
-                    return next(ApiError_1.default.badRequest("Token already exist").response);
-                }
-            }
-            const tokenValue = (0, uuid_1.v4)();
-            const salt = bcrypt_1.default.genSaltSync(saltRounds);
-            const hash_password = bcrypt_1.default.hashSync(password, salt);
-            const token = await prisma.verifyToken.create({
-                data: {
-                    username,
-                    salt,
-                    email,
-                    password: hash_password,
-                    value: tokenValue,
-                    createdAt: new Date()
-                }
-            });
-            await Context_1.ApplicationContext.redis.set(tokenValue, user_uuid);
-            res.json({
-                "verifyToken": token.value
-            });
+                return new ApiError_1.default(res, 400, "Invalid email");
+            if (!Context_1.ApplicationContext.wss.verifyUUID(user_uuid))
+                return new ApiError_1.default(res, 400, "Invalid user_uuid");
+            const result = await authModel.registration(username, password, email, user_uuid);
+            modelResponse_1.default.responseRequest(res, result);
         }
         catch (e) {
             console.warn(e.toString());
@@ -91,10 +44,10 @@ class AuthController {
     async validateVerifyToken(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid body")));
             const { verifyToken } = req.body;
             if (!verifyToken)
-                return next(ApiError_1.default.badRequest("Invalid verifyToken").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid verifyToken")));
             const result = await Context_1.ApplicationContext.redis.get(verifyToken);
             if (result) {
                 res.sendStatus(200);
@@ -181,27 +134,27 @@ class AuthController {
     async forgotPassword(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid body")));
             const { username } = req.body;
             const user_uuid = req.body.uuid;
             if (!username)
-                return next(ApiError_1.default.badRequest("Invalid username").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid username")));
             const user = await prisma.user.findFirst({
                 where: {
                     username
                 }
             });
             if (user == null) {
-                return next(ApiError_1.default.badRequest("Wrong username").response);
+                return next(new ApiError_1.default(res, 400, ("Wrong username")));
             }
             const salt = bcrypt_1.default.genSaltSync(saltRounds);
             const uuid1 = (0, uuid_1.v4)();
             const hash = bcrypt_1.default.hashSync(user_uuid, salt);
             const uuid2 = (0, uuid_1.v4)();
-            const hash_id = uuid1 + hash + uuid2;
+            const hash_id = (uuid1 + hash + uuid2).replace("/", ".");
             await Context_1.ApplicationContext.redis.set(hash_id, user.username);
             await Context_1.ApplicationContext.tgBot.bot.sendMessage(user.telegram, `hello, your reset link
-                http://localhost:3000/auth/forgot-password/auth-new-password/${hash_id}
+                http://82.146.46.97:3000/auth/forgot-password/auth-new-password/${hash_id}
             `);
             res.send("Code sent to your telegram");
         }
@@ -213,17 +166,16 @@ class AuthController {
     async validateHashId(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid body")));
             const { hashId } = req.body;
             if (!hashId)
-                return next(ApiError_1.default.badRequest("Invalid hashId").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid hashId")));
             const result = await Context_1.ApplicationContext.redis.get(hashId);
-            console.log(result);
             if (result) {
                 res.sendStatus(200);
             }
             else {
-                return next(ApiError_1.default.badRequest("Invalid hashId").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid hashId")));
             }
         }
         catch (e) {
@@ -234,16 +186,15 @@ class AuthController {
     async newPassword(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid body")));
             const { newPassword, hashId } = req.body;
-            console.log(newPassword);
             if (!newPassword)
-                return next(ApiError_1.default.badRequest("Invalid newPassword").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid newPassword")));
             if (!hashId)
-                return next(ApiError_1.default.badRequest("Invalid hashId").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid hashId")));
             const username = await Context_1.ApplicationContext.redis.get(hashId);
             if (!username)
-                return next(ApiError_1.default.badRequest("Invalid hashId").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid hashId")));
             const salt = bcrypt_1.default.genSaltSync(saltRounds);
             const hash_password = bcrypt_1.default.hashSync(newPassword, salt);
             const user = await prisma.user.update({
@@ -263,50 +214,63 @@ class AuthController {
             res.sendStatus(500);
         }
     }
+    async changePassword(req, res, next) {
+        try {
+            if (req.body == undefined)
+                return next(new ApiError_1.default(res, 400, ("Invalid body")));
+            const { oldPassword, newPassword } = req.body;
+            const token = req.cookies['token'];
+            if (!oldPassword)
+                return next(new ApiError_1.default(res, 400, ("Invalid oldPassword")));
+            if (!newPassword)
+                return next(new ApiError_1.default(res, 400, ("Invalid newPassword")));
+            if (!token)
+                return next(new ApiError_1.default(res, 400, ("Invalid token")));
+            const result = await authModel.changePassword(token, oldPassword, newPassword);
+            modelResponse_1.default.responseRequest(res, result);
+        }
+        catch (e) {
+            res.sendStatus(500);
+        }
+    }
     async login(req, res, next) {
         try {
             if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid body")));
             const { username, password } = req.body;
             if (!username)
-                return next(ApiError_1.default.badRequest("Invalid username").response);
+                return next(new ApiError_1.default(res, 400, ("Invalid username")));
             if (!password)
-                return next(ApiError_1.default.badRequest("Invalid password").response);
-            const user = await prisma.user.findFirst({
-                where: {
-                    username
-                }
-            });
-            if (user == null) {
-                return next(ApiError_1.default.badRequest("Wrong username or password").response);
-            }
-            const salt = user.salt;
-            const hashPassword = bcrypt_1.default.hashSync(password, salt);
-            if (user.password != hashPassword) {
-                return next(ApiError_1.default.badRequest("Wrong username or password").response);
-            }
-            const token = jsonwebtoken_1.default.sign({ username }, token_secret, { expiresIn: '1800s' });
-            res.cookie("token", token, {
-                maxAge: jwtMaxAge,
-                httpOnly: true
-            });
-            res.json({
-                token
-            });
+                return next(new ApiError_1.default(res, 400, ("Invalid password")));
+            const result = await authModel.login(username, password);
+            modelResponse_1.default.responseRequest(res, result);
         }
         catch (e) {
             console.warn(e.toString());
             res.sendStatus(500);
         }
     }
-    async checkToken(req, res, next) {
+    async logOut(req, res, next) {
         try {
-            if (req.body == undefined)
-                return next(ApiError_1.default.badRequest("Invalid body").response);
-            res.send("auth");
+            const token = req.cookies['token'];
+            if (token == undefined) {
+                return next(new ApiError_1.default(res, 400, ("Invalid token")));
+            }
+            const result = await authModel.logOut(token);
+            modelResponse_1.default.responseRequest(res, result);
         }
         catch (e) {
             console.warn(e.toString());
+        }
+    }
+    async checkToken(req, res, next) {
+        try {
+            if (req.body == undefined)
+                return next(new ApiError_1.default(res, 400, "Invalid body"));
+            res.send("auth");
+        }
+        catch (err) {
+            console.warn(err.toString());
         }
     }
 }

@@ -7,6 +7,7 @@ exports.Server = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const express_fileupload_1 = __importDefault(require("express-fileupload"));
 const CorsOrigin = process.env.CORS_ORIGIN;
 class Server {
     port;
@@ -20,6 +21,9 @@ class Server {
         this.router = options.router;
         this.prisma = options.prisma;
         this.cookieSecret = options.cookieSecret;
+        this.app.use((0, express_fileupload_1.default)({
+            limits: { fileSize: 50 * 1024 * 1024 },
+        }));
         this.app.use((0, cors_1.default)({
             origin: CorsOrigin,
             methods: "GET,HEAD,PUT,PATCH,POST,DELETE",

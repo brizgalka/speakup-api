@@ -29,6 +29,17 @@ enum Award {
     PUBLIC5 //250 Чатов
 }
 
+model LoginHistory {
+    id Int @id @default(autoincrement())
+
+    ip String
+
+    userId Int
+    user User @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+}
+
 model User {
   id Int @id @default(autoincrement())
 
@@ -44,10 +55,14 @@ model User {
   bio      String    @default("Hello, I'm using Speak Up!")
   salt     String
   Chats    Chat[]
+  loginHistory LoginHistory[]
+  //awards   Award[]   @default(dbgenerated())
   role     Role      @default(USER)
   User1    Dialog[]  @relation("user1_chat")
   User2    Dialog[]  @relation("user2_chat")
   Message  Message[]
+
+  @@map("Users")
 }
 
 model Visit {
@@ -56,6 +71,8 @@ model Visit {
   method  String   @default("request")
 
   ip String
+
+  @@map("Visits")
 }
 
 model VerifyToken {
@@ -69,6 +86,8 @@ model VerifyToken {
   salt     String
   username String @unique
   email    String @unique
+
+  @@map("VerifyTokens")
 }
 
 model Message {
@@ -84,6 +103,8 @@ model Message {
   senderId Int
   Dialog   Dialog? @relation(fields: [dialogId], references: [id])
   dialogId Int?
+
+  @@map("Messages")
 }
 
 model Dialog {
@@ -104,6 +125,8 @@ model Dialog {
 
   messages Message[]
   secret   String
+
+  @@map("Dialogs")
 }
 
 model Chat {
@@ -115,5 +138,6 @@ model Chat {
 
   users User[]
 
-  secret   String
+  secret String
+  @@map("Chats")
 }

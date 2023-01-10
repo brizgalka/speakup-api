@@ -1,20 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+function isSetCookie(obj) {
+    return 'set' in obj;
+}
 class ApiError {
     status;
     response;
-    constructor(status, response) {
+    cookie;
+    constructor(res, status, response, cookie) {
         this.status = status;
         this.response = response;
-    }
-    static badRequest(message) {
-        return new ApiError(404, message);
-    }
-    static internal(message) {
-        return new ApiError(500, message);
-    }
-    static forbidden(message) {
-        return new ApiError(403, message);
+        if (res != undefined) {
+            if (cookie != undefined) {
+                if (isSetCookie(cookie)) {
+                    res.cookie(cookie.set.name, cookie.set.value, cookie.set.options);
+                }
+                else {
+                    for (let i = 0; i < cookie.clear.length; i++) {
+                        res.clearCookie(cookie.clear[i]);
+                    }
+                }
+            }
+            res.status(status).send(response);
+        }
     }
 }
 exports.default = ApiError;

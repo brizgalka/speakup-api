@@ -11,14 +11,21 @@ const AuthMiddleware_1 = __importDefault(require("@/App/middleware/AuthMiddlewar
 const infoRouter_1 = __importDefault(require("@/Router/infoRouter"));
 const utilRouter_1 = __importDefault(require("@/Router/utilRouter"));
 const staticRouter_1 = __importDefault(require("@/Router/staticRouter"));
+const userApiRouter_1 = __importDefault(require("@/Router/userApiRouter"));
+const VerifyUser_1 = __importDefault(require("@/App/middleware/VerifyUser"));
+const UserMetrika_1 = __importDefault(require("@/System/Metrika/UserMetrika"));
+const RoleMiddleware_1 = __importDefault(require("@/App/middleware/RoleMiddleware"));
+const adminRouter_1 = __importDefault(require("@/Router/adminRouter"));
 const router = (0, express_1.default)();
 const apiInfoPath = path_1.default.join(__dirname, "/api.info");
 router.get("/", (req, res) => {
     res.sendFile(apiInfoPath);
 });
-//router.use(verifyUser);
+router.use(async (req, res, next) => {
+    // @ts-ignore
+    await (0, UserMetrika_1.default)(req, next);
+});
 router.use((error, req, res, next) => {
-    console.log(error);
     if (error) {
         res.status(500);
         res.send("Server error");
@@ -27,10 +34,12 @@ router.use((error, req, res, next) => {
         next();
     }
 });
-router.use('/user', AuthMiddleware_1.default, userRouter_1.default);
-router.use('/auth', authRouter_1.default);
-router.use('/info', infoRouter_1.default);
-router.use('/util', utilRouter_1.default);
+router.use('/user', [AuthMiddleware_1.default, VerifyUser_1.default], userRouter_1.default);
+router.use('/auth', VerifyUser_1.default, authRouter_1.default);
+router.use('/info', VerifyUser_1.default, infoRouter_1.default);
+router.use('/util', VerifyUser_1.default, utilRouter_1.default);
+router.use('/userApi', VerifyUser_1.default, userApiRouter_1.default);
 router.use('/static', staticRouter_1.default);
+router.use('/admin', [AuthMiddleware_1.default, VerifyUser_1.default, (0, RoleMiddleware_1.default)("ADMIN")], adminRouter_1.default);
 exports.default = router;
 //# sourceMappingURL=router.js.map

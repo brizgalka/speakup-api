@@ -15,5 +15,8 @@ router.post("/createChat", chatController.createChat);
 router.get("/getUserData", userController.getUserData);
 router.post("/getMessages", chatController.getMessages);
 router.post("/getDialogs", chatController.getDialogs);
+router.post("/getDialogInfo", chatController.getDialogInfo);
+router.post("/changePhoto", userController.changePhoto);
+router.post("/changeBio", userController.changeBio);
 exports.default = router;
 //# sourceMappingURL=userRouter.js.map

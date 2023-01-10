@@ -7,14 +7,15 @@ const Context_1 = require("@/System/Context");
 const ApiError_1 = __importDefault(require("@/App/error/ApiError"));
 function verifyUser(req, res, next) {
     const uuid = req.body.uuid;
+    console.log(uuid);
     if (uuid == undefined) {
-        return next(ApiError_1.default.badRequest("Invalid UUID. Try again").response);
+        return new ApiError_1.default(res, 400, "Invalid UUID. Try again");
     }
     if (Context_1.ApplicationContext.wss.verifyUUID(uuid)) {
         next();
     }
     else {
-        return next(ApiError_1.default.badRequest("Invalid UUID. Try again").response);
+        return new ApiError_1.default(res, 400, "Invalid UUID. Try again");
     }
 }
 exports.default = verifyUser;

@@ -6,7 +6,7 @@ dotenv.config({ path: '.env.tg' })
 moduleAlias.addAlias("@",__dirname);
 moduleAlias()
 
-import express from "express"
+import express, {Express} from "express"
 import { RedisServer } from "@/System/RedisServer"
 import { PrismaClient } from '@prisma/client'
 
@@ -27,10 +27,11 @@ const COOKIE_SECRET = String(process.env.COOKIE_SECRET);
 const mode = String(process.env.MODE);
 
 let AppContext: ApplicationContext;
+let webApplication: Express;
 
 async function startup() {
 
-    const app = express();
+    webApplication = express();
     const prisma = new PrismaClient() || undefined;
 
     const wsServer: WsServer = await new WsServer({
@@ -38,11 +39,17 @@ async function startup() {
         MAX_WSCONNECTION_PINGING
     });
 
+    const oldWarn = console.warn;
+    console.warn = (text: string) => {
+        oldWarn(text);
+        console.log("NEW ERROR LOG")
+    }
+
     console.log(wsServer)
 
     const server: Server = await new Server({
         port: SERVER_PORT,
-        app,
+        app: webApplication,
         router,
         prisma,
         cookieSecret: COOKIE_SECRET
@@ -55,8 +62,6 @@ async function startup() {
     const redisServer: RedisServer = await new RedisServer({
         urlConnection: REDIS_URL
     })
-
-    telegramView.sendHelloText(1);
 
     AppContext = new ApplicationContext({
         redis: redisServer,
@@ -80,5 +85,6 @@ startup().then(r => {
 })
 
 export {
-    AppContext
+    webApplication,
+    ApplicationContext
 }

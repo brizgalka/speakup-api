@@ -18,6 +18,7 @@
         "dom",
         "ES2015"
       ],
+      "noEmit": false,
       "paths": {
         "@/*": [
           "./src/*"

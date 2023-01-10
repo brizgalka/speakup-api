@@ -190,6 +190,7 @@ export default class ChatController {
                             }
                         })
                     }
+                    return 1;
                 }
                 res.send(200)
             } else {

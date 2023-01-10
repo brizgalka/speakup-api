@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppContext = void 0;
+exports.ApplicationContext = exports.webApplication = void 0;
 const module_alias_1 = __importDefault(require("module-alias"));
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
@@ -40,6 +40,7 @@ const Server_1 = require("@/System/Server");
 const WsServer_1 = require("@/System/WsServer");
 const router_1 = __importDefault(require("@/Router/router"));
 const Context_1 = require("@/System/Context");
+Object.defineProperty(exports, "ApplicationContext", { enumerable: true, get: function () { return Context_1.ApplicationContext; } });
 const TgBot_1 = require("@/System/TgBot");
 const SERVER_PORT = Number(process.env.SERVER_PORT);
 const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
@@ -49,18 +50,24 @@ const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
 const COOKIE_SECRET = String(process.env.COOKIE_SECRET);
 const mode = String(process.env.MODE);
 let AppContext;
-exports.AppContext = AppContext;
+let webApplication;
+exports.webApplication = webApplication;
 async function startup() {
-    const app = (0, express_1.default)();
+    exports.webApplication = webApplication = (0, express_1.default)();
     const prisma = new client_1.PrismaClient() || undefined;
     const wsServer = await new WsServer_1.WsServer({
         WEBSOCKET_PORT,
         MAX_WSCONNECTION_PINGING
     });
+    const oldWarn = console.warn;
+    console.warn = (text) => {
+        oldWarn(text);
+        console.log("NEW ERROR LOG");
+    };
     console.log(wsServer);
     const server = await new Server_1.Server({
         port: SERVER_PORT,
-        app,
+        app: webApplication,
         router: router_1.default,
         prisma,
         cookieSecret: COOKIE_SECRET
@@ -71,7 +78,7 @@ async function startup() {
     const redisServer = await new RedisServer_1.RedisServer({
         urlConnection: REDIS_URL
     });
-    exports.AppContext = AppContext = new Context_1.ApplicationContext({
+    AppContext = new Context_1.ApplicationContext({
         redis: redisServer,
         server,
         wss: wsServer,

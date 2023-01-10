@@ -30,7 +30,6 @@ class WsServer {
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0];
                 const ws_user = connection[1];
-                //console.log(ws_user)
                 ws_connection.ping();
                 if (Date.now() - ws_user.lastPing > this.MAX_WSCONNECTION_PINGING) {
                     this.connections.delete((ws_connection));
@@ -58,6 +57,8 @@ class WsServer {
             for (const connection of this.connections.entries()) {
                 const ws_connection = connection[0];
                 const ws_user = connection[1];
+                console.log("reconnected");
+                ws_user.user.username = null;
                 if (ws_user.uuid == ws.protocol) {
                     this.connections.set(ws, ws_user);
                     found = true;

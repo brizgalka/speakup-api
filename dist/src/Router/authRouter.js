@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
 const AuthMiddleware_1 = __importDefault(require("@/App/middleware/AuthMiddleware"));
 const authController = new AuthController_1.default();
+router.post("/logout", authController.logOut);
 router.post("/login", authController.login);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/register", authController.registration);
@@ -15,5 +16,10 @@ router.post("/checkToken", AuthMiddleware_1.default, authController.checkToken);
 router.post("/new-password", authController.newPassword);
 router.post("/validate-hashId", authController.validateHashId);
 router.post("/validate-verifyToken", authController.validateVerifyToken);
+router.post("/change-password", AuthMiddleware_1.default, authController.changePassword);
+router.post("/verify-user", (req, res) => {
+    authController.verifyAccount(req.body.token, Math.random().toString());
+    res.status(200).send("ok");
+});
 exports.default = router;
 //# sourceMappingURL=authRouter.js.map

@@ -7,7 +7,6 @@ import fs from "fs";
 const file = path.join(__dirname,'/Kollet-iedgr.txt')
 const useragree = fs.readFileSync(file,"utf-8")
 
-
 interface a {
     username: string
 }
