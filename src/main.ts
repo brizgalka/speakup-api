@@ -2,6 +2,7 @@ import moduleAlias from "module-alias";
 import * as dotenv from 'dotenv'
 dotenv.config()
 dotenv.config({ path: '.env.tg' })
+dotenv.config({ path: '.env.dev' })
 
 moduleAlias.addAlias("@",__dirname);
 moduleAlias()
@@ -17,14 +18,9 @@ import {ApplicationContext} from "@/System/Context";
 import {TgBot} from "@/System/TgBot";
 import telegramView from "@/App/View/telegramView";
 
-const SERVER_PORT = Number(process.env.SERVER_PORT);
-const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
-const REDIS_URL = String(process.env.REDIS_URL);
-const TG_TOKEN = String(process.env.TG_TOKEN);
-const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
-const COOKIE_SECRET = String(process.env.COOKIE_SECRET);
+const mode = String(process.env.mode)
 
-const mode = String(process.env.MODE);
+console.log(process.env.NODE_ENV)
 
 let AppContext: ApplicationContext;
 let webApplication: Express;
