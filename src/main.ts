@@ -2,11 +2,12 @@ import moduleAlias from "module-alias";
 import * as dotenv from 'dotenv'
 dotenv.config()
 dotenv.config({ path: '.env.tg' })
+dotenv.config({ path: '.env.dev' })
 
 moduleAlias.addAlias("@",__dirname);
 moduleAlias()
 
-import express from "express"
+import express, {Express} from "express"
 import { RedisServer } from "@/System/RedisServer"
 import { PrismaClient } from '@prisma/client'
 
@@ -17,32 +18,41 @@ import {ApplicationContext} from "@/System/Context";
 import {TgBot} from "@/System/TgBot";
 import telegramView from "@/App/View/telegramView";
 
+const mode = String(process.env.NODE_ENV)
+
+if(mode == "PRODUCTION") {
+    process.env.DATABASE_URL = process.env.PRODUCTION_DATABASE_URL
+    process.env.REDIS_URL = process.env.PRODUCTION_REDIS_URL
+} else {
+    process.env.DATABASE_URL = process.env.DEVELOPMENT_DATABASE_URL
+    process.env.REDIS_URL = process.env.DEVELOPMENT_REDIS_URL
+}
+
+const REDIS_URL = String(process.env.REDIS_URL)
 const SERVER_PORT = Number(process.env.SERVER_PORT);
 const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
-const REDIS_URL = String(process.env.REDIS_URL);
 const TG_TOKEN = String(process.env.TG_TOKEN);
 const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
 const COOKIE_SECRET = String(process.env.COOKIE_SECRET);
 
-const mode = String(process.env.MODE);
+console.log(process.env.REDIS_URL)
+console.log(process.env.DATABASE_URL)
 
 let AppContext: ApplicationContext;
+let webApplication: Express;
 
 async function startup() {
 
-    const app = express();
+    webApplication = express();
     const prisma = new PrismaClient() || undefined;
 
     const wsServer: WsServer = await new WsServer({
         WEBSOCKET_PORT,
         MAX_WSCONNECTION_PINGING
     });
-
-    console.log(wsServer)
-
     const server: Server = await new Server({
         port: SERVER_PORT,
-        app,
+        app: webApplication,
         router,
         prisma,
         cookieSecret: COOKIE_SECRET
@@ -55,8 +65,6 @@ async function startup() {
     const redisServer: RedisServer = await new RedisServer({
         urlConnection: REDIS_URL
     })
-
-    telegramView.sendHelloText(1);
 
     AppContext = new ApplicationContext({
         redis: redisServer,
@@ -80,5 +88,6 @@ startup().then(r => {
 })
 
 export {
-    AppContext
+    webApplication,
+    ApplicationContext
 }
