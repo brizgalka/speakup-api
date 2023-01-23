@@ -18,9 +18,25 @@ import {ApplicationContext} from "@/System/Context";
 import {TgBot} from "@/System/TgBot";
 import telegramView from "@/App/View/telegramView";
 
-const mode = String(process.env.mode)
+const mode = String(process.env.NODE_ENV)
 
-console.log(process.env.NODE_ENV)
+if(mode == "PRODUCTION") {
+    process.env.DATABASE_URL = process.env.PRODUCTION_DATABASE_URL
+    process.env.REDIS_URL = process.env.PRODUCTION_REDIS_URL
+} else {
+    process.env.DATABASE_URL = process.env.DEVELOPMENT_DATABASE_URL
+    process.env.REDIS_URL = process.env.DEVELOPMENT_REDIS_URL
+}
+
+const REDIS_URL = String(process.env.REDIS_URL)
+const SERVER_PORT = Number(process.env.SERVER_PORT);
+const WEBSOCKET_PORT = Number(process.env.WEBSOCKET_PORT);
+const TG_TOKEN = String(process.env.TG_TOKEN);
+const MAX_WSCONNECTION_PINGING = Number(process.env.MAX_WSCONNECTION_PINGING);
+const COOKIE_SECRET = String(process.env.COOKIE_SECRET);
+
+console.log(process.env.REDIS_URL)
+console.log(process.env.DATABASE_URL)
 
 let AppContext: ApplicationContext;
 let webApplication: Express;
@@ -34,15 +50,6 @@ async function startup() {
         WEBSOCKET_PORT,
         MAX_WSCONNECTION_PINGING
     });
-
-    const oldWarn = console.warn;
-    console.warn = (text: string) => {
-        oldWarn(text);
-        console.log("NEW ERROR LOG")
-    }
-
-    console.log(wsServer)
-
     const server: Server = await new Server({
         port: SERVER_PORT,
         app: webApplication,

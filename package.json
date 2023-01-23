@@ -28,8 +28,8 @@
     "xml2js": "^0.4.23"
   },
   "scripts": {
-    "start:ts": "set NODE_ENV=development && ts-node src/main.ts",
-    "start": "set NODE_ENV=development && node dist/main.js",
+    "start:ts": "set NODE_ENV=PRODUCTION && ts-node src/main.ts",
+    "start": "set NODE_ENV=PRODUCTION && node dist/main.js",
     "build": "npm run build:ts",
     "build:ts": "tsc",
     "dev": "set NODE_ENV=development && ts-node-dev --respawn ./src/main.ts",
